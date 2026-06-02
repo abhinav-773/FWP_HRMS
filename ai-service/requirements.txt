@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+langchain
+langchain-community
+motor
+pydantic
+python-dotenv
