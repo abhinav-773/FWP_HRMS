@@ -22,19 +22,33 @@ enum UserStatus {
 
 model User {
   id            String         @id @default(uuid())
+  clerkId       String?        @unique
   fullName      String
   email         String         @unique
-  password      String
+  password      String?
+  tempPassword  Boolean        @default(false)
   role          Role           @default(EMPLOYEE)
   status        UserStatus     @default(ACTIVE)
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   
   // Relations
-  RefreshTokens   RefreshToken[]
-  EmployeeProfile EmployeeProfile?
-  notifications   Notification[]
-  documents       Document[]
+  RefreshTokens       RefreshToken[]
+  AuthSessions        AuthSession[]
+  ResetTokens         PasswordResetToken[]
+  EmployeeProfile     EmployeeProfile?
+  notifications       Notification[]
+  documents           Document[]
+  // ATS
+  jobsPosted          JobPosting[]          @relation("JobsPostedBy")
+  assignedCandidates  Candidate[]           @relation("AssignedCandidates")
+  interviews          Interview[]           @relation("Interviews")
+  atsActivities       ApplicationActivity[] @relation("ActivityPerformedBy")
+  
+  // Collaboration
+  conversations       ConversationParticipant[]
+  messagesSent        Message[]             @relation("MessagesSent")
+  sharedNotes         SharedNote[]          @relation("SharedNotesBy")
 }
 
 model Department {
@@ -44,6 +58,7 @@ model Department {
   createdAt   DateTime          @default(now())
   updatedAt   DateTime          @updatedAt
   employees   EmployeeProfile[]
+  jobPostings JobPosting[]
 }
 
 model Designation {
@@ -75,6 +90,7 @@ model EmployeeProfile {
   phone         String?
   address       String?
   profilePhoto  String?
+  onboardingProgress Float     @default(0)
   
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
@@ -83,6 +99,24 @@ model EmployeeProfile {
   leaveRequests LeaveRequest[] @relation("EmployeeLeaves")
   leaveApprovals LeaveRequest[] @relation("ManagerApprovals")
   payrolls      Payroll[]
+
+  // Onboarding & Assets
+  onboardingChecklists OnboardingChecklist[]
+  itAssets            ITAsset[]
+
+  // Performance Management
+  performanceGoals    PerformanceGoal[]
+  performanceReviews  PerformanceReview[] @relation("EmployeeReviews")
+  managerReviews      PerformanceReview[] @relation("ManagerReviews")
+  peerFeedback        PeerFeedback[]      @relation("EmployeePeerFeedback")
+  givenPeerFeedback   PeerFeedback[]      @relation("PeerFeedbackGiver")
+  
+  // Tasks
+  assignedTasks       TeamTask[]          @relation("AssignedTasks")
+  createdTasks        TeamTask[]          @relation("CreatedTasks")
+  
+  // Interviews
+  interviews          Interview[]         @relation("EmployeeInterviews")
 }
 
 enum AttendanceStatus {
@@ -103,6 +137,12 @@ model Attendance {
   status          AttendanceStatus @default(PRESENT)
   location        String?          
   
+  // Expanded Attendance
+  workFromHome    Boolean          @default(false)
+  breakTime       Float            @default(0) // total break time in minutes
+  shiftStart      DateTime?
+  shiftEnd        DateTime?
+
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
 
@@ -133,6 +173,7 @@ model LeaveRequest {
   endDate         DateTime         @db.Date
   reason          String
   status          LeaveStatus      @default(PENDING)
+  managerRemarks  String?          @db.Text
   
   managerId       String?
   manager         EmployeeProfile? @relation("ManagerApprovals", fields: [managerId], references: [id])
@@ -193,7 +234,20 @@ enum DocumentType {
   ID_PROOF
   CONTRACT
   CERTIFICATE
+  AADHAAR
+  PAN
+  BANK_DETAILS
+  ADDRESS_PROOF
+  PASSPORT_PHOTO
+  NDA
+  OFFER_LETTER
   OTHER
+}
+
+enum DocumentVerificationStatus {
+  PENDING
+  VERIFIED
+  REJECTED
 }
 
 model Document {
@@ -201,10 +255,10 @@ model Document {
   userId          String
   user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  name            String
-  documentType    DocumentType     @default(OTHER)
-  fileUrl         String           // Local path or S3 URL
-  isVerified      Boolean          @default(false)
+  name               String
+  documentType       DocumentType               @default(OTHER)
+  fileUrl            String           // Local path or S3 URL
+  verificationStatus DocumentVerificationStatus @default(PENDING)
   
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
@@ -217,4 +271,490 @@ model RefreshToken {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   expiresAt DateTime
   createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+//  ATS — Applicant Tracking System
+// ─────────────────────────────────────────────
+
+enum EmploymentType {
+  FULL_TIME
+  PART_TIME
+  CONTRACT
+  INTERNSHIP
+}
+
+enum JobStatus {
+  DRAFT
+  OPEN
+  CLOSED
+  ARCHIVED
+}
+
+model JobPosting {
+  id                 String          @id @default(uuid())
+  title              String
+  departmentId       String?
+  department         Department?     @relation(fields: [departmentId], references: [id])
+  description        String
+  requirements       String
+  skills             String[]
+  employmentType     EmploymentType  @default(FULL_TIME)
+  salaryMin          Float?
+  salaryMax          Float?
+  location           String?
+  experienceRequired Int             @default(0)
+  aiSummary          String?         @db.Text
+  status             JobStatus       @default(DRAFT)
+  openings           Int             @default(1)
+  postedById         String
+  postedBy           User            @relation("JobsPostedBy", fields: [postedById], references: [id])
+  closingDate        DateTime?
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+
+  applications       Application[]
+}
+
+enum CandidateSource {
+  DIRECT
+  REFERRAL
+  LINKEDIN
+  JOB_BOARD
+  AGENCY
+}
+
+model Candidate {
+  id              String          @id @default(uuid())
+  fullName        String
+  email           String          @unique
+  phone           String?
+  location        String?
+  resumeUrl       String?
+  linkedinUrl     String?
+  skills          String[]
+  source          CandidateSource @default(DIRECT)
+  experience      Int             @default(0)  // years
+  education       String?
+  notes           String?
+  assignedToId    String?
+  assignedTo      User?           @relation("AssignedCandidates", fields: [assignedToId], references: [id])
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  applications    Application[]
+  sharedNotes     SharedNote[]    @relation("CandidateSharedNotes")
+}
+
+enum ApplicationStage {
+  APPLIED
+  SCREENING
+  INTERVIEW
+  SHORTLISTED
+  HIRED
+  REJECTED
+}
+
+model Application {
+  id              String           @id @default(uuid())
+  jobId           String
+  job             JobPosting       @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  candidateId     String
+  candidate       Candidate        @relation(fields: [candidateId], references: [id], onDelete: Cascade)
+  stage           ApplicationStage @default(APPLIED)
+  coverLetter     String?          @db.Text
+  recruiterNotes  String?          @db.Text
+  aiScore         Float?
+  aiInsights      String?          @db.Text
+  semanticScore   Float?
+  technicalScore  Float?
+  experienceScore Float?
+  educationScore  Float?
+  overallAIScore  Float?
+  aiStrengths     String[]
+  aiWeaknesses    String[]
+  aiRecommendation String?
+  rejectionReason String?
+  interviewStatus String?          @default("INTERVIEW_PENDING")
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  interviews      Interview[]
+  activities      ApplicationActivity[]
+
+  @@unique([jobId, candidateId])
+}
+
+model ApplicationActivity {
+  id              String           @id @default(uuid())
+  applicationId   String
+  application     Application      @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fromStage       ApplicationStage?
+  toStage         ApplicationStage
+  note            String?
+  performedById   String
+  performedBy     User             @relation("ActivityPerformedBy", fields: [performedById], references: [id])
+  createdAt       DateTime         @default(now())
+}
+
+enum InterviewType {
+  PHONE_SCREEN
+  VIDEO_CALL
+  TECHNICAL
+  HR_ROUND
+  FINAL_ROUND
+  AI_VOICE
+}
+
+enum InterviewStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
+}
+
+model Interview {
+  id              String          @id @default(uuid())
+  applicationId   String?
+  application     Application?    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  employeeId      String?
+  employee        EmployeeProfile? @relation("EmployeeInterviews", fields: [employeeId], references: [id], onDelete: Cascade)
+  interviewerId   String
+  interviewer     User            @relation("Interviews", fields: [interviewerId], references: [id])
+  type            InterviewType   @default(PHONE_SCREEN)
+  scheduledAt     DateTime
+  durationMins    Int             @default(60)
+  location        String?         // Room or video link
+  status          InterviewStatus @default(SCHEDULED)
+  feedback        String?
+  
+  // AI Video Interview Additions
+  meetingUrl      String?         @unique // Unique link for candidate
+  recordingUrl    String?         
+  transcript      Json?           // Stores timestamped transcript array
+  startedAt       DateTime?
+  endedAt         DateTime?
+  
+  aiAnalysis      AIInterviewAnalysis?
+
+  interviewType   String?
+  meetingProvider String?
+  interviewRounds String[]
+  interviewerName String?
+  interviewNotes  String?
+  interviewStatus String?
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  title           String?
+  date            String?
+  time            String?
+  notes           String?
+}
+
+model AIInterviewAnalysis {
+  id                    String      @id @default(uuid())
+  interviewId           String      @unique
+  interview             Interview   @relation(fields: [interviewId], references: [id], onDelete: Cascade)
+  
+  confidenceScore       Float
+  communicationScore    Float
+  technicalScore        Float
+  
+  fillerWordsCount      Int
+  speakingPace          String
+  sentiment             String
+  
+  strengths             String[]
+  weaknesses            String[]
+  overallRecommendation String      @db.Text
+  
+  createdAt             DateTime    @default(now())
+  updatedAt             DateTime    @updatedAt
+}
+
+// ─────────────────────────────────────────────
+//  Internal Collaboration (Chat & Notes)
+// ─────────────────────────────────────────────
+
+model Conversation {
+  id              String         @id @default(uuid())
+  isGroup         Boolean        @default(false)
+  name            String?        // For group chats
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  participants    ConversationParticipant[]
+  messages        Message[]
+}
+
+model ConversationParticipant {
+  id              String         @id @default(uuid())
+  conversationId  String
+  conversation    Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  userId          String
+  user            User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  joinedAt        DateTime       @default(now())
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id              String         @id @default(uuid())
+  conversationId  String
+  conversation    Conversation   @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId        String
+  sender          User           @relation("MessagesSent", fields: [senderId], references: [id], onDelete: Cascade)
+  content         String         @db.Text
+  isRead          Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+model SharedNote {
+  id              String         @id @default(uuid())
+  candidateId     String
+  candidate       Candidate      @relation("CandidateSharedNotes", fields: [candidateId], references: [id], onDelete: Cascade)
+  authorId        String
+  author          User           @relation("SharedNotesBy", fields: [authorId], references: [id], onDelete: Cascade)
+  content         String         @db.Text
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+// ─────────────────────────────────────────────
+//  Enterprise HR Operations & Onboarding Extensions
+// ─────────────────────────────────────────────
+
+enum OnboardingChecklistStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum OnboardingTaskStatus {
+  PENDING
+  COMPLETED
+}
+
+model OnboardingChecklist {
+  id          String                    @id @default(uuid())
+  employeeId  String
+  employee    EmployeeProfile           @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  status      OnboardingChecklistStatus @default(PENDING)
+  createdAt   DateTime                  @default(now())
+  updatedAt   DateTime                  @updatedAt
+  tasks       OnboardingTask[]
+}
+
+model OnboardingTask {
+  id               String               @id @default(uuid())
+  checklistId      String
+  checklist        OnboardingChecklist  @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  title            String
+  description      String?
+  status           OnboardingTaskStatus @default(PENDING)
+  dueDate          DateTime?
+  completedAt      DateTime?
+  documentRequired Boolean              @default(false)
+  documentUrl      String?
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+}
+
+enum ITAssetStatus {
+  ASSIGNED
+  RETRIEVED
+  REPAIRING
+}
+
+model ITAsset {
+  id           String          @id @default(uuid())
+  employeeId   String?
+  employee     EmployeeProfile? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  assetName    String
+  assetType    String
+  serialNumber String?
+  status       ITAssetStatus   @default(ASSIGNED)
+  assignedDate DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+enum GoalStatus {
+  ACTIVE
+  ACHIEVED
+  DEFERRED
+}
+
+model PerformanceGoal {
+  id          String          @id @default(uuid())
+  employeeId  String
+  employee    EmployeeProfile @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  targetDate  DateTime?
+  progress    Float           @default(0)
+  status      GoalStatus      @default(ACTIVE)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+}
+
+model PerformanceReview {
+  id           String          @id @default(uuid())
+  employeeId   String
+  employee     EmployeeProfile @relation("EmployeeReviews", fields: [employeeId], references: [id], onDelete: Cascade)
+  reviewerId   String
+  reviewer     EmployeeProfile @relation("ManagerReviews", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewPeriod String
+  
+  technicalRating     Float
+  communicationRating Float
+  productivityRating  Float
+  teamworkRating      Float
+  overallRating       Float
+  
+  strengths           String[]
+  weaknesses          String[]
+  managerRemarks      String?         @db.Text
+  aiSummary           String?         @db.Text
+  
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model PeerFeedback {
+  id           String          @id @default(uuid())
+  employeeId   String
+  employee     EmployeeProfile @relation("EmployeePeerFeedback", fields: [employeeId], references: [id], onDelete: Cascade)
+  peerId       String
+  peer         EmployeeProfile @relation("PeerFeedbackGiver", fields: [peerId], references: [id], onDelete: Cascade)
+  reviewPeriod String
+  feedbackText String          @db.Text
+  rating       Float?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model WorkflowRule {
+  id           String           @id @default(uuid())
+  name         String
+  triggerEvent String
+  conditions   Json?
+  isActive     Boolean          @default(true)
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  actions      WorkflowAction[]
+}
+
+model WorkflowAction {
+  id         String       @id @default(uuid())
+  ruleId     String
+  rule       WorkflowRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  actionType String
+  parameters Json?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+}
+
+model AuthSession {
+  id           String   @id @default(uuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  refreshToken String   @unique
+  expiresAt    DateTime
+  ipAddress    String?
+  userAgent    String?
+  device       String?
+  browser      String?
+  isValid      Boolean  @default(true)
+  lastActiveAt DateTime @default(now())
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  action      String
+  entityType  String
+  entityId    String?
+  actorId     String?
+  details     Json?
+  ipAddress   String?
+  createdAt   DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+// ─────────────────────────────────────────────
+//  Public / External Interactions
+// ─────────────────────────────────────────────
+
+enum DemoRequestStatus {
+  PENDING
+  CONTACTED
+  SCHEDULED
+  COMPLETED
+  ARCHIVED
+}
+
+model DemoRequest {
+  id          String            @id @default(uuid())
+  name        String
+  company     String
+  email       String
+  companySize String?
+  message     String?           @db.Text
+  status      DemoRequestStatus @default(PENDING)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+// ─────────────────────────────────────────────
+//  Senior Manager Module
+// ─────────────────────────────────────────────
+
+enum TeamTaskStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+model TeamTask {
+  id                   String          @id @default(uuid())
+  title                String
+  description          String?         @db.Text
+  priority             String          @default("MEDIUM")
+  assignedToEmployeeId String
+  assignedTo           EmployeeProfile @relation("AssignedTasks", fields: [assignedToEmployeeId], references: [id], onDelete: Cascade)
+  assignedByManagerId  String
+  assignedBy           EmployeeProfile @relation("CreatedTasks", fields: [assignedByManagerId], references: [id], onDelete: Cascade)
+  department           String
+  dueDate              DateTime
+  status               TeamTaskStatus  @default(PENDING)
+  progress             Int             @default(0)
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+}
+
+model TeamAnalytics {
+  id                  String   @id @default(uuid())
+  department          String
+  averageAttendance   Float
+  averageProductivity Float
+  overdueTasks        Int      @default(0)
+  completedTasks      Int      @default(0)
+  burnoutRiskScore    Float
+  generatedAt         DateTime @default(now())
 }

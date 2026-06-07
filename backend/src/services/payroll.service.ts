@@ -1,4 +1,5 @@
-import prisma from '../config/prisma';
+import prisma from '../config/prisma.js';
+import employeeBootstrapService from './employeeBootstrap.service.js';
 
 export class PayrollService {
   async generatePayroll(month: number, year: number) {
@@ -49,8 +50,7 @@ export class PayrollService {
   }
 
   async getMyPayslips(userId: string) {
-    const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-    if (!profile) throw new Error('Employee profile not found');
+    const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
 
     return await prisma.payroll.findMany({
       where: { employeeId: profile.id },

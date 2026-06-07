@@ -5,3 +5,11 @@ langchain-community
 motor
 pydantic
 python-dotenv
+python-multipart
+pymupdf
+sentence-transformers
+scikit-learn
+requests
+openai-whisper
+soundfile
+python-multipart

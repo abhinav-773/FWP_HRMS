@@ -1,107 +1,82 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Lock, Mail, Loader2 } from 'lucide-react';
-import axiosClient from '../../../services/axiosClient';
-import { setCredentials } from '../../../store/slices/authSlice';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Users, Briefcase, UserPlus, Shield } from 'lucide-react';
+import EnterpriseLoginModal from '../../../components/auth/EnterpriseLoginModal';
+
+const ROLES = [
+  { id: 'HR_RECRUITER', title: 'HR Recruiter', image: '/assets/roles/hr.png', description: 'Manage ATS & candidates' },
+  { id: 'SENIOR_MANAGER', title: 'Senior Manager', image: '/assets/roles/manager.png', description: 'Team approvals & reports' },
+  { id: 'SUPER_ADMIN', title: 'Super Admin', image: '/assets/roles/admin.png', description: 'Executive dashboard' },
+  { id: 'EMPLOYEE', title: 'Employee', image: '/assets/roles/employee.png', description: 'Access your HR portal' },
+];
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
+  const [selectedRole, setSelectedRole] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+  const handleRoleSelect = (role) => {
+    setSelectedRole(role);
+    setIsModalOpen(true);
+  };
 
-    try {
-      const response = await axiosClient.post('/auth/login', { email, password });
-      dispatch(setCredentials({ user: response.data.user, token: response.data.accessToken }));
-      navigate('/dashboard'); // Will be routed appropriately by ProtectedRoute later
-    } catch (err) {
-      setError(err.response?.data?.error || 'Failed to login');
-    } finally {
-      setIsLoading(false);
-    }
+  const closeModal = () => {
+    setIsModalOpen(false);
+    // Add a slight delay before clearing the role to allow exit animations to finish smoothly
+    setTimeout(() => setSelectedRole(null), 300);
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-950 text-white flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Background glow effects */}
+      <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-indigo-600/20 rounded-full blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-purple-600/20 rounded-full blur-[120px] pointer-events-none" />
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-white/10 backdrop-blur-lg border border-white/20 p-8 rounded-2xl shadow-2xl"
+        className="w-full max-w-5xl relative z-10"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-indigo-400 mb-2">HRGPT</h1>
-          <p className="text-gray-400">Welcome back! Please login to your account.</p>
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-purple-400 mb-4 tracking-tight">
+            HireMind Enterprise
+          </h1>
+          <p className="text-gray-400 text-lg">
+            Select your role portal to continue
+          </p>
         </div>
 
-        {error && (
-          <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg mb-6">
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">Email Address</label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Mail className="h-5 w-5 text-gray-400" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 px-4">
+          {ROLES.map((role, i) => (
+            <motion.button
+              key={role.id}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: i * 0.1 }}
+              onClick={() => handleRoleSelect(role)}
+              className="group relative p-8 rounded-3xl bg-gray-900/50 border border-white/10 hover:border-purple-500/70 backdrop-blur-md hover:backdrop-blur-2xl transition-all duration-500 text-center flex flex-col items-center hover:-translate-y-3 hover:shadow-[0_0_40px_-5px_rgba(147,51,234,0.5)] overflow-hidden"
+            >
+              <div className="flex justify-center items-center mb-6 w-full h-[120px]">
+                <img 
+                  src={role.image} 
+                  alt={role.title} 
+                  className="w-[90px] h-[90px] md:w-[110px] md:h-[110px] object-contain group-hover:scale-110 transition-transform duration-700 ease-out drop-shadow-2xl animate-[float_4s_ease-in-out_infinite]"
+                />
               </div>
-              <input 
-                type="email" 
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white placeholder-gray-500"
-                placeholder="name@company.com"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-              <label className="block text-sm font-medium text-gray-300">Password</label>
-              <a href="#" className="text-sm text-indigo-400 hover:text-indigo-300">Forgot password?</a>
-            </div>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Lock className="h-5 w-5 text-gray-400" />
-              </div>
-              <input 
-                type="password" 
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2.5 bg-gray-800/50 border border-gray-700 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-white placeholder-gray-500"
-                placeholder="••••••••"
-                required
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={isLoading}
-            className="w-full flex justify-center items-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 focus:ring-offset-gray-900 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {isLoading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign In'}
-          </button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-gray-400">
-          Don't have an account?{' '}
-          <Link to="/register" className="font-medium text-indigo-400 hover:text-indigo-300">
-            Register here
-          </Link>
-        </p>
+              <h3 className="text-xl font-bold text-white mb-2">{role.title}</h3>
+              <p className="text-sm text-gray-400 leading-relaxed max-w-[200px] mx-auto">{role.description}</p>
+              
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-b from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+            </motion.button>
+          ))}
+        </div>
       </motion.div>
+
+      {/* Enterprise Modal */}
+      <EnterpriseLoginModal 
+        role={selectedRole} 
+        isOpen={isModalOpen} 
+        onClose={closeModal} 
+      />
     </div>
   );
 };

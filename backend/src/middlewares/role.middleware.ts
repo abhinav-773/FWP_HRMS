@@ -1,18 +1,31 @@
 import { Request, Response, NextFunction } from 'express';
-import { Role } from '@prisma/client';
+import { requireAuth } from './auth.middleware';
 
-export const requireRole = (allowedRoles: Role[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
-    const user = (req as any).user;
+// Re-export requireAuth for convenience
+export { requireAuth };
 
-    if (!user || !user.role) {
-      return res.status(403).json({ error: 'Forbidden: No role assigned' });
+export const requireRole = (role: string) => {
+  return [
+    requireAuth,
+    (req: Request, res: Response, next: NextFunction) => {
+      const user = (req as any).user;
+      if (!user || user.role !== role) {
+        return res.status(403).json({ error: `Forbidden: Requires ${role} role` });
+      }
+      next();
     }
+  ];
+};
 
-    if (!allowedRoles.includes(user.role)) {
-      return res.status(403).json({ error: 'Forbidden: Insufficient permissions' });
+export const requireAnyRole = (roles: string[]) => {
+  return [
+    requireAuth,
+    (req: Request, res: Response, next: NextFunction) => {
+      const user = (req as any).user;
+      if (!user || !roles.includes(user.role)) {
+        return res.status(403).json({ error: `Forbidden: Requires one of [${roles.join(', ')}] roles` });
+      }
+      next();
     }
-
-    next();
-  };
+  ];
 };

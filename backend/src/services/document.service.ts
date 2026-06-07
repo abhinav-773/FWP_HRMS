@@ -13,17 +13,30 @@ export class DocumentService {
     });
   }
 
-  async getMyDocuments(userId: string) {
+  async getMyDocuments(userId: string, search?: string, type?: string) {
+    const whereClause: any = { userId };
+    
+    if (search) {
+      whereClause.name = {
+        contains: search,
+        mode: 'insensitive'
+      };
+    }
+    
+    if (type && type !== 'ALL') {
+      whereClause.documentType = type as any;
+    }
+
     return await prisma.document.findMany({
-      where: { userId },
+      where: whereClause,
       orderBy: { createdAt: 'desc' }
     });
   }
 
-  async verifyDocument(documentId: string) {
+  async verifyDocument(documentId: string, status: 'VERIFIED' | 'REJECTED' | 'PENDING' = 'VERIFIED') {
     return await prisma.document.update({
       where: { id: documentId },
-      data: { isVerified: true }
+      data: { verificationStatus: status }
     });
   }
 }

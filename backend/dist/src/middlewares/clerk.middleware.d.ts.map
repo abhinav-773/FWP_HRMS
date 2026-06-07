@@ -1,0 +1,1 @@
+{"version":3,"file":"clerk.middleware.d.ts","sourceRoot":"","sources":["../../../src/middlewares/clerk.middleware.ts"],"names":[],"mappings":"AAQA;;;GAGG;AACH,wBAAsB,gBAAgB,CAAC,WAAW,EAAE,MAAM;;;GA6EzD;AAED;;;GAGG;AACH,wBAAsB,gBAAgB,CAAC,KAAK,EAAE,MAAM,GAAG,OAAO,CAAC;IAAE,GAAG,EAAE,MAAM,CAAA;CAAE,GAAG,IAAI,CAAC,CAiBrF"}

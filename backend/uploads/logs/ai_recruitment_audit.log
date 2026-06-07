@@ -1,0 +1,100 @@
+[2026-06-05T09:57:37.065Z] Queueing application: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:57:37.067Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:57:37.081Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:57:37.082Z] Re-queueing 457ed4cf-096b-4db5-9865-cce224d2ecf7 (Attempt 2/4)
+[2026-06-05T09:57:37.593Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:57:37.599Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:57:37.600Z] Re-queueing 457ed4cf-096b-4db5-9865-cce224d2ecf7 (Attempt 3/4)
+[2026-06-05T09:57:38.105Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:57:38.112Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:57:38.113Z] Re-queueing 457ed4cf-096b-4db5-9865-cce224d2ecf7 (Attempt 4/4)
+[2026-06-05T09:57:38.615Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:57:38.622Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:57:38.622Z] Max retries reached. Marking application 457ed4cf-096b-4db5-9865-cce224d2ecf7 as failed.
+[2026-06-05T09:59:57.985Z] Queueing application: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:59:57.986Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:59:57.994Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:59:57.994Z] Re-queueing 457ed4cf-096b-4db5-9865-cce224d2ecf7 (Attempt 2/4)
+[2026-06-05T09:59:58.499Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:59:58.505Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:59:58.505Z] Re-queueing 457ed4cf-096b-4db5-9865-cce224d2ecf7 (Attempt 3/4)
+[2026-06-05T09:59:59.012Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:59:59.019Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:59:59.020Z] Re-queueing 457ed4cf-096b-4db5-9865-cce224d2ecf7 (Attempt 4/4)
+[2026-06-05T09:59:59.526Z] Starting processing for application ID: 457ed4cf-096b-4db5-9865-cce224d2ecf7
+[2026-06-05T09:59:59.546Z] ERROR for 457ed4cf-096b-4db5-9865-cce224d2ecf7: Resume file not found at path: /uploads/resume-1780653457015-281568750.pdf
+[2026-06-05T09:59:59.547Z] Max retries reached. Marking application 457ed4cf-096b-4db5-9865-cce224d2ecf7 as failed.
+[2026-06-05T10:16:47.730Z] Queueing application: a7682e16-fcb7-4eec-b62c-ede933906369
+[2026-06-05T10:16:47.731Z] Starting processing for application ID: a7682e16-fcb7-4eec-b62c-ede933906369
+[2026-06-05T10:16:47.744Z] Extracting text from resume file for candidate: Jane Doe
+[2026-06-05T10:16:49.183Z] Extracting structured details via LLM/Regex...
+[2026-06-05T10:16:53.867Z] Upserting candidate resume vector embedding into ChromaDB...
+[2026-06-05T10:16:54.600Z] Evaluating matching scores against job posting...
+[2026-06-05T10:17:07.253Z] AI Evaluated Candidate: Jane Doe. Score: 85%. Promoting stage to: INTERVIEW.
+[2026-06-05T10:17:07.285Z] Generating AI Voice Interview eligibility link for candidate...
+[2026-06-05T10:17:07.303Z] Fired real-time websocket sync for job: f59651e8-48bc-4e2d-a925-a50cb1f90616
+[2026-06-05T10:17:07.304Z] Successfully completed processing for application ID: a7682e16-fcb7-4eec-b62c-ede933906369
+[2026-06-05T10:44:59.508Z] Queueing application: d1562769-bba8-44ff-a3f7-e8aeb0d977c9
+[2026-06-05T10:44:59.510Z] Starting processing for application ID: d1562769-bba8-44ff-a3f7-e8aeb0d977c9
+[2026-06-05T10:44:59.519Z] Extracting text from resume file for candidate: NISHANT
+[2026-06-05T10:44:59.665Z] Extracting structured details via LLM/Regex...
+[2026-06-05T10:45:10.248Z] Upserting candidate resume vector embedding into ChromaDB...
+[2026-06-05T10:45:10.623Z] Evaluating matching scores against job posting...
+[2026-06-05T10:45:29.725Z] AI Evaluated Candidate: NISHANT. Score: 55%. Promoting stage to: REJECTED.
+[2026-06-05T10:45:29.749Z] Fired real-time websocket sync for job: f59651e8-48bc-4e2d-a925-a50cb1f90616
+[2026-06-05T10:45:29.750Z] Successfully completed processing for application ID: d1562769-bba8-44ff-a3f7-e8aeb0d977c9
+[2026-06-05T10:56:25.635Z] Queueing application: b8f90357-96d8-419d-aebf-d8f0794175b8
+[2026-06-05T10:56:25.636Z] Starting processing for application ID: b8f90357-96d8-419d-aebf-d8f0794175b8
+[2026-06-05T10:56:25.646Z] Extracting text from resume file for candidate: SaaS Tester
+[2026-06-05T10:56:25.736Z] ERROR for b8f90357-96d8-419d-aebf-d8f0794175b8: Failed to extract text from file: Invalid PDF structure
+[2026-06-05T10:56:25.736Z] Re-queueing b8f90357-96d8-419d-aebf-d8f0794175b8 (Attempt 2/4)
+[2026-06-05T10:56:26.238Z] Starting processing for application ID: b8f90357-96d8-419d-aebf-d8f0794175b8
+[2026-06-05T10:56:26.245Z] Extracting text from resume file for candidate: SaaS Tester
+[2026-06-05T10:56:26.249Z] ERROR for b8f90357-96d8-419d-aebf-d8f0794175b8: Failed to extract text from file: Invalid PDF structure
+[2026-06-05T10:56:26.250Z] Re-queueing b8f90357-96d8-419d-aebf-d8f0794175b8 (Attempt 3/4)
+[2026-06-05T10:56:26.759Z] Starting processing for application ID: b8f90357-96d8-419d-aebf-d8f0794175b8
+[2026-06-05T10:56:26.766Z] Extracting text from resume file for candidate: SaaS Tester
+[2026-06-05T10:56:26.768Z] ERROR for b8f90357-96d8-419d-aebf-d8f0794175b8: Failed to extract text from file: Invalid PDF structure
+[2026-06-05T10:56:26.769Z] Re-queueing b8f90357-96d8-419d-aebf-d8f0794175b8 (Attempt 4/4)
+[2026-06-05T10:56:27.281Z] Starting processing for application ID: b8f90357-96d8-419d-aebf-d8f0794175b8
+[2026-06-05T10:56:27.287Z] Extracting text from resume file for candidate: SaaS Tester
+[2026-06-05T10:56:27.290Z] ERROR for b8f90357-96d8-419d-aebf-d8f0794175b8: Failed to extract text from file: Invalid PDF structure
+[2026-06-05T10:56:27.291Z] Max retries reached. Marking application b8f90357-96d8-419d-aebf-d8f0794175b8 as failed.
+[2026-06-05T10:58:31.936Z] Queueing application: b479ab96-2c22-4d6f-8c5d-f8e68122d47d
+[2026-06-05T10:58:31.937Z] Starting processing for application ID: b479ab96-2c22-4d6f-8c5d-f8e68122d47d
+[2026-06-05T10:58:31.947Z] Extracting text from resume file for candidate: SaaS Guest Tester
+[2026-06-05T10:58:31.948Z] Extracting structured details via LLM/Regex...
+[2026-06-05T10:58:34.254Z] Upserting candidate resume vector embedding into ChromaDB...
+[2026-06-05T10:58:34.426Z] Evaluating matching scores against job posting...
+[2026-06-05T10:58:53.042Z] AI Evaluated Candidate: SaaS Guest Tester. Score: 85%. Promoting stage to: INTERVIEW.
+[2026-06-05T10:58:53.051Z] Generating AI Voice Interview eligibility link for candidate...
+[2026-06-05T10:58:53.068Z] Fired real-time websocket sync for job: f59651e8-48bc-4e2d-a925-a50cb1f90616
+[2026-06-05T10:58:53.068Z] Successfully completed processing for application ID: b479ab96-2c22-4d6f-8c5d-f8e68122d47d
+[2026-06-05T21:33:41.784Z] Queueing application: 52020073-fe8c-49e2-af19-028f47965d6d
+[2026-06-05T21:33:41.786Z] Starting processing for application ID: 52020073-fe8c-49e2-af19-028f47965d6d
+[2026-06-05T21:33:41.796Z] Extracting text from resume file for candidate: Pranav
+[2026-06-05T21:33:41.944Z] Extracting structured details via LLM/Regex...
+[2026-06-05T21:33:51.569Z] Upserting candidate resume vector embedding into ChromaDB...
+[2026-06-05T21:33:52.287Z] Evaluating matching scores against job posting...
+[2026-06-05T21:34:02.701Z] AI Evaluated Candidate: Pranav. Score: 83%. Promoting stage to: INTERVIEW.
+[2026-06-05T21:34:02.719Z] Generating AI Voice Interview eligibility link for candidate...
+[2026-06-05T21:34:02.732Z] Fired real-time websocket sync for job: f59651e8-48bc-4e2d-a925-a50cb1f90616
+[2026-06-05T21:34:02.734Z] Successfully completed processing for application ID: 52020073-fe8c-49e2-af19-028f47965d6d
+[2026-06-06T16:01:02.426Z] Queueing application: e3a6d4f4-2e29-440c-ad2a-69ee5fab92f0
+[2026-06-06T16:01:02.429Z] Starting processing for application ID: e3a6d4f4-2e29-440c-ad2a-69ee5fab92f0
+[2026-06-06T16:01:02.438Z] Extracting text from resume file for candidate: Amrit Raj
+[2026-06-06T16:01:03.888Z] Extracting structured details via LLM/Regex...
+[2026-06-06T16:01:05.567Z] Upserting candidate resume vector embedding into ChromaDB...
+[2026-06-06T16:01:06.550Z] Evaluating matching scores against job posting...
+[2026-06-06T16:01:09.478Z] AI Evaluated Candidate: Amrit Raj. Score: 57%. Promoting stage to: REJECTED.
+[2026-06-06T16:01:17.524Z] Fired real-time websocket sync for job: f59651e8-48bc-4e2d-a925-a50cb1f90616
+[2026-06-06T16:01:17.525Z] Successfully completed processing for application ID: e3a6d4f4-2e29-440c-ad2a-69ee5fab92f0
+[2026-06-07T12:57:46.151Z] Queueing application: ad015e98-9bd0-4b11-a1c2-3c64000e7ff6
+[2026-06-07T12:57:46.154Z] Starting processing for application ID: ad015e98-9bd0-4b11-a1c2-3c64000e7ff6
+[2026-06-07T12:57:46.174Z] Extracting text from resume file for candidate: Abhinav
+[2026-06-07T12:57:47.891Z] Extracting structured details via LLM/Regex...
+[2026-06-07T12:57:49.493Z] Upserting candidate resume vector embedding into ChromaDB...
+[2026-06-07T12:57:50.686Z] Evaluating matching scores against job posting...
+[2026-06-07T12:57:52.456Z] AI Evaluated Candidate: Abhinav. Score: 56%. Promoting stage to: REJECTED.
+[2026-06-07T12:57:59.439Z] Fired real-time websocket sync for job: ce3a1671-6de7-4eae-a0fb-cc50b2431bf2
+[2026-06-07T12:57:59.440Z] Successfully completed processing for application ID: ad015e98-9bd0-4b11-a1c2-3c64000e7ff6

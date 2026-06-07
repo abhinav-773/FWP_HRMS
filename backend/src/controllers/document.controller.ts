@@ -24,7 +24,12 @@ export const uploadDocument = async (req: Request, res: Response) => {
 export const getMyDocuments = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
-    const docs = await documentService.getMyDocuments(userId);
+    const { search, type } = req.query;
+    const docs = await documentService.getMyDocuments(
+      userId, 
+      search ? String(search) : undefined, 
+      type ? String(type) : undefined
+    );
     res.json({ data: docs });
   } catch (error: any) {
     res.status(500).json({ error: error.message });
@@ -33,7 +38,7 @@ export const getMyDocuments = async (req: Request, res: Response) => {
 
 export const verifyDocument = async (req: Request, res: Response) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const doc = await documentService.verifyDocument(id);
     res.json({ data: doc, message: 'Document verified' });
   } catch (error: any) {

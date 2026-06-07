@@ -1,0 +1,10 @@
+2026-06-04T13:50:03.923Z - Failed to process resume lenovo_resume.pdf: Error: Failed to extract text from file.
+    at Function.extractTextFromFile (D:\Abhi_HRMS\backend\src\services\resumeParser.service.ts:39:19)
+    at processResumes (D:\Abhi_HRMS\backend\src\controllers\bulkUpload.controller.ts:62:55)
+    at <anonymous> (D:\Abhi_HRMS\backend\src\controllers\bulkUpload.controller.ts:38:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+2026-06-04T14:00:13.711Z - Failed to process resume lenovo_resume.pdf: Error: Failed to extract text from file.
+    at Function.extractTextFromFile (D:\Abhi_HRMS\backend\src\services\resumeParser.service.ts:39:19)
+    at processResumes (D:\Abhi_HRMS\backend\src\controllers\bulkUpload.controller.ts:62:55)
+    at <anonymous> (D:\Abhi_HRMS\backend\src\controllers\bulkUpload.controller.ts:38:13)
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)

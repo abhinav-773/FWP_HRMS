@@ -1,0 +1,22 @@
+import { z } from 'zod';
+import dotenv from 'dotenv';
+dotenv.config();
+const envSchema = z.object({
+    NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
+    PORT: z.string().default('5000'),
+    DATABASE_URL: z.string().url(),
+    MONGODB_URI: z.string().url(),
+    CLERK_SECRET_KEY: z.string().min(5),
+    CLERK_PUBLISHABLE_KEY: z.string().startsWith('pk_'),
+    JWT_SECRET: z.string().optional(),
+    JWT_REFRESH_SECRET: z.string().optional(),
+    REDIS_URL: z.string().url().optional(),
+    OLLAMA_BASE_URL: z.string().url().optional(),
+});
+const envParsed = envSchema.safeParse(process.env);
+if (!envParsed.success) {
+    console.error('❌ Invalid environment variables:', envParsed.error.format());
+    process.exit(1);
+}
+export const env = envParsed.data;
+//# sourceMappingURL=env.js.map

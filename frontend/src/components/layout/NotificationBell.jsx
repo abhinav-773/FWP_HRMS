@@ -1,47 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Check, CheckCircle2 } from 'lucide-react';
-import axiosClient from '../../services/axiosClient';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNotifications } from '../../hooks/useNotifications';
 
 const NotificationBell = () => {
-  const [notifications, setNotifications] = useState([]);
+  const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const [isOpen, setIsOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
-  const fetchNotifications = async () => {
-    try {
-      const res = await axiosClient.get('/notifications');
-      setNotifications(res.data.data);
-      setUnreadCount(res.data.data.filter(n => !n.isRead).length);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
-    // Simplified polling for MVP (if socket.io client is not fully set up)
-    const interval = setInterval(fetchNotifications, 30000); 
-    return () => clearInterval(interval);
-  }, []);
-
-  const markAsRead = async (id) => {
-    try {
-      await axiosClient.put(`/notifications/${id}/read`);
-      fetchNotifications();
-    } catch (error) {
-      console.error(error);
-    }
-  };
-
-  const markAllRead = async () => {
-    try {
-      await axiosClient.put('/notifications/mark-all-read');
-      fetchNotifications();
-    } catch (error) {
-      console.error(error);
-    }
-  };
 
   return (
     <div className="relative">
@@ -69,7 +33,7 @@ const NotificationBell = () => {
               <h3 className="font-semibold text-white">Notifications</h3>
               {unreadCount > 0 && (
                 <button 
-                  onClick={markAllRead}
+                  onClick={markAllAsRead}
                   className="text-xs text-indigo-400 hover:text-indigo-300 flex items-center"
                 >
                   <Check className="h-3 w-3 mr-1" /> Mark all read
