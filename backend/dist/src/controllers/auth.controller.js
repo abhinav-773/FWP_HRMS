@@ -1,7 +1,8 @@
 import bcrypt from 'bcryptjs';
 import prisma from '../config/prisma';
-import authService from '../services/auth.service';
-import { env } from '../config/env';
+import authService from '../services/auth.service.js';
+import employeeBootstrapService from '../services/employeeBootstrap.service.js';
+import { env } from '../config/env.js';
 // Helper to set HTTP-only cookie
 const setRefreshCookie = (res, token) => {
     res.cookie('refreshToken', token, {
@@ -13,41 +14,80 @@ const setRefreshCookie = (res, token) => {
 };
 export const login = async (req, res) => {
     try {
-        const { identifier, password } = req.body; // identifier can be email or employeeId
-        if (!identifier || !password) {
-            return res.status(400).json({ error: 'Missing credentials' });
+        const { emailOrEmployeeId, password, role } = req.body;
+        console.log('[Auth] Login request received:', emailOrEmployeeId, role);
+        if (!emailOrEmployeeId || !password) {
+            console.log('[Auth] Missing email or password');
+            return res.status(400).json({ error: 'Please provide all required fields' });
         }
-        // Find User (either by email or matching employeeProfile.employeeId)
+        // Find User by Email OR through EmployeeProfile's employeeId
         let user = await prisma.user.findUnique({
-            where: { email: identifier },
+            where: { email: emailOrEmployeeId },
             include: { EmployeeProfile: true }
         });
         if (!user) {
             const profile = await prisma.employeeProfile.findUnique({
-                where: { employeeId: identifier },
+                where: { employeeId: emailOrEmployeeId },
                 include: { user: { include: { EmployeeProfile: true } } }
             });
             if (profile)
                 user = profile.user;
         }
+        if (user && role && user.role !== role) {
+            await prisma.auditLog.create({
+                data: { action: 'LOGIN_FAILED', entityType: 'User', entityId: user.id, ipAddress: req.ip, details: { reason: `Role mismatch: expected ${role}, got ${user.role}` } }
+            });
+            return res.status(403).json({ error: 'Unauthorized role. Please use the correct login portal.' });
+        }
+        console.log('[Auth] User found:', !!user);
         if (!user || !user.password) {
+            console.log('[Auth] Invalid credentials or missing password');
+            if (user) {
+                await prisma.auditLog.create({
+                    data: { action: 'LOGIN_FAILED', entityType: 'User', entityId: user.id, ipAddress: req.ip, details: { reason: 'No password' } }
+                });
+            }
             return res.status(401).json({ error: 'Invalid credentials' });
         }
         if (user.status !== 'ACTIVE' && user.status !== 'PENDING') {
             return res.status(403).json({ error: 'Account is inactive' });
         }
+        console.log('[Auth] Starting password comparison');
         // Verify Password
         const isMatch = await bcrypt.compare(password, user.password);
+        console.log('[Auth] Password compare result:', isMatch);
         if (!isMatch) {
+            console.log('[Auth] Password mismatch');
+            await prisma.auditLog.create({
+                data: { action: 'LOGIN_FAILED', entityType: 'User', entityId: user.id, ipAddress: req.ip, details: { reason: 'Wrong password' } }
+            });
             return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        console.log('[Auth] Generating JWTs...');
+        // Ensure Employee Profile & HR Records Exist
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(user.id);
+        if (!user.EmployeeProfile) {
+            user.EmployeeProfile = profile;
         }
         // Generate Tokens
         const { accessToken, refreshToken } = authService.generateTokens(user);
+        console.log('[Auth] JWTs generated successfully');
         // Save session
-        await authService.createSession(user.id, refreshToken, req.ip, req.headers['user-agent']);
+        await authService.createSession(user.id, refreshToken);
+        await prisma.auditLog.create({
+            data: {
+                action: 'LOGIN_SUCCESS',
+                entityType: 'User',
+                entityId: user.id,
+                actorId: user.id,
+                ipAddress: req.ip,
+                details: { role: user.role }
+            }
+        });
         // Set secure cookie
         setRefreshCookie(res, refreshToken);
-        res.json({
+        console.log('[Auth] Sending success response');
+        return res.status(200).json({
             message: 'Login successful',
             accessToken,
             user: {
@@ -55,15 +95,15 @@ export const login = async (req, res) => {
                 email: user.email,
                 fullName: user.fullName,
                 role: user.role,
-                status: user.status,
-                tempPassword: user.tempPassword,
-                employeeProfile: user.EmployeeProfile
+                employeeId: user.EmployeeProfile?.employeeId || null,
+                employeeProfileId: user.EmployeeProfile?.id || null,
+                departmentId: user.EmployeeProfile?.departmentId || null
             }
         });
     }
     catch (error) {
-        console.error('Login Error:', error);
-        res.status(500).json({ error: 'Internal server error' });
+        console.error('[Auth] Login error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
     }
 };
 export const logout = async (req, res) => {
@@ -85,6 +125,7 @@ export const refreshToken = async (req, res) => {
         if (!token)
             return res.status(401).json({ error: 'No refresh token' });
         const result = await authService.refreshSession(token);
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(result.user.id);
         setRefreshCookie(res, result.refreshToken);
         res.json({
             accessToken: result.accessToken,
@@ -94,7 +135,9 @@ export const refreshToken = async (req, res) => {
                 fullName: result.user.fullName,
                 role: result.user.role,
                 status: result.user.status,
-                tempPassword: result.user.tempPassword
+                tempPassword: result.user.tempPassword,
+                employeeProfileId: profile.id,
+                departmentId: profile.departmentId
             }
         });
     }

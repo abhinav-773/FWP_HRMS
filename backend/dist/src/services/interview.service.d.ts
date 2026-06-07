@@ -1,6 +1,6 @@
 export declare class InterviewService {
     scheduleInterview(data: any): Promise<{
-        application: {
+        application: ({
             candidate: {
                 fullName: string;
                 email: string;
@@ -29,7 +29,7 @@ export declare class InterviewService {
             interviewStatus: string | null;
             jobId: string;
             candidateId: string;
-        };
+        }) | null;
         interviewer: {
             id: string;
             fullName: string;
@@ -37,13 +37,16 @@ export declare class InterviewService {
         };
     } & {
         id: string;
+        employeeId: string | null;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.InterviewStatus;
         type: import(".prisma/client").$Enums.InterviewType;
+        title: string | null;
+        date: string | null;
         location: string | null;
+        notes: string | null;
         interviewStatus: string | null;
-        applicationId: string;
         scheduledAt: Date;
         durationMins: number;
         feedback: string | null;
@@ -57,10 +60,12 @@ export declare class InterviewService {
         interviewRounds: string[];
         interviewerName: string | null;
         interviewNotes: string | null;
+        time: string | null;
+        applicationId: string | null;
         interviewerId: string;
     }>;
     getInterviews(query: any): Promise<({
-        application: {
+        application: ({
             candidate: {
                 id: string;
                 fullName: string;
@@ -91,20 +96,23 @@ export declare class InterviewService {
             interviewStatus: string | null;
             jobId: string;
             candidateId: string;
-        };
+        }) | null;
         interviewer: {
             id: string;
             fullName: string;
         };
     } & {
         id: string;
+        employeeId: string | null;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.InterviewStatus;
         type: import(".prisma/client").$Enums.InterviewType;
+        title: string | null;
+        date: string | null;
         location: string | null;
+        notes: string | null;
         interviewStatus: string | null;
-        applicationId: string;
         scheduledAt: Date;
         durationMins: number;
         feedback: string | null;
@@ -118,17 +126,22 @@ export declare class InterviewService {
         interviewRounds: string[];
         interviewerName: string | null;
         interviewNotes: string | null;
+        time: string | null;
+        applicationId: string | null;
         interviewerId: string;
     })[]>;
     updateInterview(id: string, data: any): Promise<{
         id: string;
+        employeeId: string | null;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.InterviewStatus;
         type: import(".prisma/client").$Enums.InterviewType;
+        title: string | null;
+        date: string | null;
         location: string | null;
+        notes: string | null;
         interviewStatus: string | null;
-        applicationId: string;
         scheduledAt: Date;
         durationMins: number;
         feedback: string | null;
@@ -142,17 +155,22 @@ export declare class InterviewService {
         interviewRounds: string[];
         interviewerName: string | null;
         interviewNotes: string | null;
+        time: string | null;
+        applicationId: string | null;
         interviewerId: string;
     }>;
     deleteInterview(id: string): Promise<{
         id: string;
+        employeeId: string | null;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.InterviewStatus;
         type: import(".prisma/client").$Enums.InterviewType;
+        title: string | null;
+        date: string | null;
         location: string | null;
+        notes: string | null;
         interviewStatus: string | null;
-        applicationId: string;
         scheduledAt: Date;
         durationMins: number;
         feedback: string | null;
@@ -166,10 +184,12 @@ export declare class InterviewService {
         interviewRounds: string[];
         interviewerName: string | null;
         interviewNotes: string | null;
+        time: string | null;
+        applicationId: string | null;
         interviewerId: string;
     }>;
     getInterviewByMeetingUrl(meetingUrl: string): Promise<({
-        application: {
+        application: ({
             candidate: {
                 fullName: string;
                 email: string;
@@ -200,16 +220,19 @@ export declare class InterviewService {
             interviewStatus: string | null;
             jobId: string;
             candidateId: string;
-        };
+        }) | null;
     } & {
         id: string;
+        employeeId: string | null;
         createdAt: Date;
         updatedAt: Date;
         status: import(".prisma/client").$Enums.InterviewStatus;
         type: import(".prisma/client").$Enums.InterviewType;
+        title: string | null;
+        date: string | null;
         location: string | null;
+        notes: string | null;
         interviewStatus: string | null;
-        applicationId: string;
         scheduledAt: Date;
         durationMins: number;
         feedback: string | null;
@@ -223,6 +246,8 @@ export declare class InterviewService {
         interviewRounds: string[];
         interviewerName: string | null;
         interviewNotes: string | null;
+        time: string | null;
+        applicationId: string | null;
         interviewerId: string;
     }) | null>;
 }

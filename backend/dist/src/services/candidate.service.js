@@ -1,24 +1,37 @@
 import prisma from '../config/prisma';
 export class CandidateService {
     async createCandidate(data) {
-        return await prisma.candidate.create({
-            data: {
-                fullName: data.fullName,
-                email: data.email,
-                phone: data.phone,
-                location: data.location,
-                resumeUrl: data.resumeUrl,
-                linkedinUrl: data.linkedinUrl,
-                skills: data.skills || [],
-                source: data.source || 'DIRECT',
-                experience: data.experience ? parseInt(data.experience, 10) : 0,
-                education: data.education,
-                notes: data.notes,
-                assignedToId: data.assignedToId || null,
-            },
-            include: {
-                assignedTo: { select: { id: true, fullName: true } }
+        return await prisma.$transaction(async (tx) => {
+            const candidate = await tx.candidate.create({
+                data: {
+                    fullName: data.fullName,
+                    email: data.email,
+                    phone: data.phone,
+                    location: data.location,
+                    resumeUrl: data.resumeUrl,
+                    linkedinUrl: data.linkedinUrl,
+                    skills: data.skills || [],
+                    source: data.source || 'DIRECT',
+                    experience: data.experience ? parseInt(data.experience, 10) : 0,
+                    education: data.education,
+                    notes: data.notes,
+                    assignedToId: data.assignedToId || null,
+                },
+                include: {
+                    assignedTo: { select: { id: true, fullName: true } }
+                }
+            });
+            if (data.jobId) {
+                await tx.application.create({
+                    data: {
+                        candidateId: candidate.id,
+                        jobId: data.jobId,
+                        stage: 'APPLIED',
+                        aiScore: null,
+                    }
+                });
             }
+            return candidate;
         });
     }
     async getAllCandidates(query) {

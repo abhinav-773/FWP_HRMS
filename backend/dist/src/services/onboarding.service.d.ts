@@ -8,9 +8,9 @@ export declare class OnboardingService {
             status: import(".prisma/client").$Enums.OnboardingTaskStatus;
             description: string | null;
             title: string;
-            documentRequired: boolean;
             dueDate: Date | null;
             completedAt: Date | null;
+            documentRequired: boolean;
             documentUrl: string | null;
             checklistId: string;
         }[];
@@ -31,9 +31,9 @@ export declare class OnboardingService {
             status: import(".prisma/client").$Enums.OnboardingTaskStatus;
             description: string | null;
             title: string;
-            documentRequired: boolean;
             dueDate: Date | null;
             completedAt: Date | null;
+            documentRequired: boolean;
             documentUrl: string | null;
             checklistId: string;
         }[];
@@ -54,9 +54,9 @@ export declare class OnboardingService {
             status: import(".prisma/client").$Enums.OnboardingTaskStatus;
             description: string | null;
             title: string;
-            documentRequired: boolean;
             dueDate: Date | null;
             completedAt: Date | null;
+            documentRequired: boolean;
             documentUrl: string | null;
             checklistId: string;
         }[];
@@ -111,9 +111,9 @@ export declare class OnboardingService {
         status: import(".prisma/client").$Enums.OnboardingTaskStatus;
         description: string | null;
         title: string;
-        documentRequired: boolean;
         dueDate: Date | null;
         completedAt: Date | null;
+        documentRequired: boolean;
         documentUrl: string | null;
         checklistId: string;
     }>;

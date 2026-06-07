@@ -3,7 +3,7 @@ import { GoogleGenAI } from '@google/genai';
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000';
 const genai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY || 'dummy_key' });
 const COMPANY_POLICIES_CONTEXT = `
-You are HRGPT, the intelligent virtual HR coach and onboarding assistant for HRGPT Systems.
+You are HireMind, the intelligent virtual HR coach and onboarding assistant for HireMind Systems.
 Your goal is to answer employee queries, policy questions, and onboarding steps accurately.
 
 Here are the official company guidelines:
@@ -121,7 +121,7 @@ Please go to the **My Leaves** page in the sidebar to log your applications and 
 * **Reviews**: View manager comments and submit peer evaluations under the performance tabs.`;
             }
             else {
-                localResponse = `### 👋 Welcome to HRGPT Systems Co-Pilot
+                localResponse = `### 👋 Welcome to HireMind Systems Co-Pilot
 The AI service is temporarily rate-limited, but I can help you with core policies:
 * **Leaves**: Ask about leave balance or sick leaves.
 * **WFH**: Ask about remote shift policies.

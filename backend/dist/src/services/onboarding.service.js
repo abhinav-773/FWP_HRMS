@@ -41,7 +41,7 @@ export class OnboardingService {
             await tx.notification.create({
                 data: {
                     userId: employee.userId,
-                    title: 'Welcome to HRGPT! Onboarding Checklist Assigned',
+                    title: 'Welcome to HireMind! Onboarding Checklist Assigned',
                     message: `Your onboarding checklist "${title}" has been assigned. Please complete your tasks.`,
                     type: 'SYSTEM',
                     link: '/onboarding'

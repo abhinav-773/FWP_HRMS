@@ -26,10 +26,10 @@ export class DocumentService {
             orderBy: { createdAt: 'desc' }
         });
     }
-    async verifyDocument(documentId) {
+    async verifyDocument(documentId, status = 'VERIFIED') {
         return await prisma.document.update({
             where: { id: documentId },
-            data: { isVerified: true }
+            data: { verificationStatus: status }
         });
     }
 }

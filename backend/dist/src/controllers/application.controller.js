@@ -5,6 +5,8 @@ import screeningQueueService from '../services/screeningQueue.service';
 import emailService from '../services/email.service';
 import prisma from '../config/prisma';
 import { v4 as uuidv4 } from 'uuid';
+import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 export const applyForJob = async (req, res) => {
     try {
         const userId = req.user.userId;
@@ -36,6 +38,16 @@ export const updateStage = async (req, res) => {
             return res.status(400).json({ error: 'Invalid stage' });
         }
         const app = await applicationService.updateApplicationStage(id, stage, userId, note);
+        // Employee Generation Automation
+        if (stage === 'HIRED') {
+            const appWithCandidate = await prisma.application.findUnique({
+                where: { id },
+                include: { candidate: true, job: true }
+            });
+            if (appWithCandidate) {
+                await automateEmployeeCreation(appWithCandidate.candidate, appWithCandidate.job);
+            }
+        }
         // Broadcast real-time ATS update
         eventBus.emitAtsUpdate(app.jobId, { applicationId: app.id, stage: app.stage });
         res.json({ data: app, message: `Application moved to ${stage}` });
@@ -113,6 +125,9 @@ export const overrideDecision = async (req, res) => {
             else if (stage === 'REJECTED') {
                 await emailService.sendCandidateRejection(candidate.email, candidate.fullName, job.title);
             }
+            else if (stage === 'HIRED') {
+                await automateEmployeeCreation(candidate, job);
+            }
         }
         // Broadcast real-time ATS update
         eventBus.emitAtsUpdate(app.jobId, { applicationId: app.id, stage: app.stage });
@@ -122,4 +137,68 @@ export const overrideDecision = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+async function automateEmployeeCreation(candidate, job) {
+    try {
+        // Check if user already exists
+        let user = await prisma.user.findUnique({ where: { email: candidate.email } });
+        const tempPassword = crypto.randomBytes(6).toString('hex');
+        const hashedPassword = await bcrypt.hash(tempPassword, 10);
+        if (!user) {
+            user = await prisma.user.create({
+                data: {
+                    email: candidate.email,
+                    fullName: candidate.fullName,
+                    password: hashedPassword,
+                    tempPassword: true,
+                    role: 'EMPLOYEE'
+                }
+            });
+        }
+        else {
+            // If user exists, just update their role to EMPLOYEE if they weren't
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { role: 'EMPLOYEE' }
+            });
+        }
+        // Check if EmployeeProfile already exists
+        let profile = await prisma.employeeProfile.findUnique({ where: { userId: user.id } });
+        let employeeId = '';
+        if (!profile) {
+            employeeId = `EMP-${Math.floor(Math.random() * 90000) + 10000}`;
+            profile = await prisma.employeeProfile.create({
+                data: {
+                    userId: user.id,
+                    employeeId,
+                    departmentId: job.departmentId,
+                    salary: job.salaryMin || 60000,
+                }
+            });
+        }
+        else {
+            employeeId = profile.employeeId;
+        }
+        // Create Onboarding Checklist
+        const checklist = await prisma.onboardingChecklist.create({
+            data: {
+                employeeId: profile.id,
+                title: 'Standard New Hire Onboarding',
+                description: 'Complete all necessary paperwork and IT setup.',
+                status: 'PENDING'
+            }
+        });
+        await prisma.onboardingTask.createMany({
+            data: [
+                { checklistId: checklist.id, title: 'Upload ID Proof', documentRequired: true, status: 'PENDING' },
+                { checklistId: checklist.id, title: 'Sign NDA', documentRequired: true, status: 'PENDING' },
+                { checklistId: checklist.id, title: 'Provide Bank Details', documentRequired: true, status: 'PENDING' }
+            ]
+        });
+        // Send email with credentials
+        await emailService.sendOnboardingCredentialsEmail(candidate.email, candidate.fullName, employeeId, tempPassword);
+    }
+    catch (error) {
+        console.error('Error automating employee creation:', error);
+    }
+}
 //# sourceMappingURL=application.controller.js.map

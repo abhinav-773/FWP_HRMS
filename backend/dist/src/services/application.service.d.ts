@@ -63,13 +63,16 @@ export declare class ApplicationService {
     getAllApplications(query: any): Promise<({
         interviews: {
             id: string;
+            employeeId: string | null;
             createdAt: Date;
             updatedAt: Date;
             status: import(".prisma/client").$Enums.InterviewStatus;
             type: import(".prisma/client").$Enums.InterviewType;
+            title: string | null;
+            date: string | null;
             location: string | null;
+            notes: string | null;
             interviewStatus: string | null;
-            applicationId: string;
             scheduledAt: Date;
             durationMins: number;
             feedback: string | null;
@@ -83,6 +86,8 @@ export declare class ApplicationService {
             interviewRounds: string[];
             interviewerName: string | null;
             interviewNotes: string | null;
+            time: string | null;
+            applicationId: string | null;
             interviewerId: string;
         }[];
         candidate: {

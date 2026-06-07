@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs';
 import chalk from 'chalk';
 import readline from 'readline';
 import { env } from '../src/config/env';
+import employeeBootstrapService from '../src/services/employeeBootstrap.service';
 const prisma = new PrismaClient();
 const rl = readline.createInterface({
     input: process.stdin,
@@ -13,7 +14,7 @@ async function prompt(query) {
     return new Promise((resolve) => rl.question(query, resolve));
 }
 async function seedDatabase() {
-    console.log(chalk.cyan.bold('\n🚀 HRGPT Demo Data Seeding Script\n'));
+    console.log(chalk.cyan.bold('\n🚀 HireMind Demo Data Seeding Script\n'));
     // Safeguards
     if (env.NODE_ENV === 'production') {
         console.error(chalk.red('❌ ERROR: Cannot run demo seeding in production environment!'));
@@ -27,10 +28,15 @@ async function seedDatabase() {
     }
     console.log(chalk.bgRed.white.bold(' ⚠️ DANGER ZONE ⚠️ '));
     console.log(chalk.red('This will COMPLETELY WIPE the database and reseed demo data!'));
-    const answer = await prompt(chalk.yellow('Are you absolutely sure you want to proceed? (yes/no): '));
-    if (answer.toLowerCase() !== 'yes') {
-        console.log(chalk.green('Aborting seed process.'));
-        process.exit(0);
+    if (args.includes('--yes')) {
+        console.log(chalk.green('Bypassing prompt due to --yes flag.'));
+    }
+    else {
+        const answer = await prompt(chalk.yellow('Are you absolutely sure you want to proceed? (yes/no): '));
+        if (answer.toLowerCase() !== 'yes') {
+            console.log(chalk.green('Aborting seed process.'));
+            process.exit(0);
+        }
     }
     console.log(chalk.blue('\n🧹 Wiping database...'));
     // Wipe Database in correct order to avoid foreign key constraints
@@ -39,6 +45,12 @@ async function seedDatabase() {
     await prisma.conversation.deleteMany();
     await prisma.sharedNote.deleteMany();
     await prisma.notification.deleteMany();
+    await prisma.onboardingTask.deleteMany();
+    await prisma.onboardingChecklist.deleteMany();
+    await prisma.performanceGoal.deleteMany();
+    await prisma.performanceReview.deleteMany();
+    await prisma.iTAsset.deleteMany();
+    await prisma.document.deleteMany();
     await prisma.payroll.deleteMany();
     await prisma.leaveRequest.deleteMany();
     await prisma.attendance.deleteMany();
@@ -55,41 +67,36 @@ async function seedDatabase() {
     const defaultPassword = await bcrypt.hash('password123', 10);
     // 1. Create Personas
     console.log(chalk.magenta('- Creating Executive Personas...'));
-    const ceoUser = await prisma.user.create({
+    const adminPassword = await bcrypt.hash('Admin@123', 10);
+    const hrPassword = await bcrypt.hash('Hr@123', 10);
+    const managerPassword = await bcrypt.hash('Manager@123', 10);
+    const adminUser = await prisma.user.create({
         data: {
-            email: 'ceo@hrgpt.com',
-            password: defaultPassword,
-            fullName: 'Sarah Chen (CEO)',
+            email: 'admin@hiremind.com',
+            password: adminPassword,
+            fullName: 'System Admin',
             role: Role.SUPER_ADMIN,
         }
     });
     const hrUser = await prisma.user.create({
         data: {
-            email: 'hr@hrgpt.com',
-            password: defaultPassword,
+            email: 'hr@hiremind.com',
+            password: hrPassword,
             fullName: 'Marcus Johnson (HR Manager)',
-            role: Role.SUPER_ADMIN,
-        }
-    });
-    const recruiterUser = await prisma.user.create({
-        data: {
-            email: 'recruiter@hrgpt.com',
-            password: defaultPassword,
-            fullName: 'Elena Rodriguez (Recruiter)',
             role: Role.HR_RECRUITER,
         }
     });
     const managerUser = await prisma.user.create({
         data: {
-            email: 'manager@hrgpt.com',
-            password: defaultPassword,
+            email: 'manager@hiremind.com',
+            password: managerPassword,
             fullName: 'David Kim (VP Eng)',
             role: Role.SENIOR_MANAGER,
         }
     });
     const employeeUser = await prisma.user.create({
         data: {
-            email: 'employee@hrgpt.com',
+            email: 'employee@hiremind.com',
             password: defaultPassword,
             fullName: 'Alex Rivera (Engineer)',
             role: Role.EMPLOYEE,
@@ -116,16 +123,16 @@ async function seedDatabase() {
         createdDesignations[title] = desig.id;
     }
     // Create standard employee profiles
-    const allUsers = [ceoUser, hrUser, recruiterUser, managerUser, employeeUser];
-    const departments = ['Executive', 'Human Resources', 'Recruiting', 'Engineering', 'Engineering'];
-    const userTitles = ['CEO', 'HR Manager', 'Senior Recruiter', 'VP of Engineering', 'Software Engineer'];
+    const allUsers = [adminUser, hrUser, managerUser, employeeUser];
+    const departments = ['Executive', 'Human Resources', 'Engineering', 'Engineering'];
+    const userTitles = ['CEO', 'HR Manager', 'VP of Engineering', 'Software Engineer'];
     for (let i = 0; i < allUsers.length; i++) {
         const user = allUsers[i];
         const deptName = departments[i];
         const title = userTitles[i];
         if (!user || !deptName || !title)
             continue;
-        await prisma.employeeProfile.create({
+        const profile = await prisma.employeeProfile.create({
             data: {
                 userId: user.id,
                 employeeId: `EMP-${Math.floor(Math.random() * 90000) + 10000}`,
@@ -135,6 +142,7 @@ async function seedDatabase() {
                 salary: faker.number.int({ min: 80000, max: 250000 }),
             }
         });
+        await employeeBootstrapService.initializeHRRecords(profile.id);
     }
     // Generate 20 more random employees
     console.log(chalk.magenta('- Generating Employees & Attendance Data...'));
@@ -144,7 +152,7 @@ async function seedDatabase() {
         const ln = faker.person.lastName();
         const user = await prisma.user.create({
             data: {
-                email: `${fn.toLowerCase()}.${ln.toLowerCase()}@hrgpt.com`,
+                email: `${fn.toLowerCase()}.${ln.toLowerCase()}@hiremind.com`,
                 password: defaultPassword,
                 fullName: `${fn} ${ln}`,
                 role: Role.EMPLOYEE,
@@ -161,6 +169,7 @@ async function seedDatabase() {
                 salary: faker.number.int({ min: 60000, max: 150000 }),
             }
         });
+        await employeeBootstrapService.initializeHRRecords(profile.id);
         // Generate recent attendance records (last 5 days)
         for (let d = 0; d < 5; d++) {
             const date = new Date();
@@ -187,11 +196,15 @@ async function seedDatabase() {
         const currentDate = new Date();
         // Generate 1 payroll per employee
         const baseSalary = profile.salary ?? 60000;
-        await prisma.payroll.create({
+        await prisma.payroll.update({
+            where: {
+                employeeId_month_year: {
+                    employeeId: profile.id,
+                    month: currentDate.getMonth() + 1,
+                    year: currentDate.getFullYear()
+                }
+            },
             data: {
-                employeeId: profile.id,
-                month: currentDate.getMonth() + 1,
-                year: currentDate.getFullYear(),
                 basicSalary: baseSalary / 12,
                 allowances: faker.number.int({ min: 200, max: 1000 }),
                 deductions: faker.number.int({ min: 50, max: 300 }),
@@ -199,6 +212,8 @@ async function seedDatabase() {
                 status: 'PAID'
             }
         });
+        // We can skip manual payroll generation here since initializeHRRecords handles draft creation.
+        // If we want history, we can keep the PAID one. Let's just keep the PAID one.
     }
     // Generate ATS Jobs
     console.log(chalk.magenta('- Generating ATS Pipeline...'));
@@ -257,11 +272,10 @@ async function seedDatabase() {
     }
     console.log(chalk.green('\n🎉 Demo Data Seeded Successfully!'));
     console.log(chalk.white('You can now log in with the following demo personas:'));
-    console.log(chalk.cyan(`- ceo@hrgpt.com (Password: password123)`));
-    console.log(chalk.cyan(`- hr@hrgpt.com (Password: password123)`));
-    console.log(chalk.cyan(`- recruiter@hrgpt.com (Password: password123)`));
-    console.log(chalk.cyan(`- manager@hrgpt.com (Password: password123)`));
-    console.log(chalk.cyan(`- employee@hrgpt.com (Password: password123)`));
+    console.log(chalk.cyan(`- admin@hiremind.com (Password: Admin@123)`));
+    console.log(chalk.cyan(`- hr@hiremind.com (Password: Hr@123)`));
+    console.log(chalk.cyan(`- manager@hiremind.com (Password: Manager@123)`));
+    console.log(chalk.cyan(`- employee@hiremind.com (Password: password123)`));
     process.exit(0);
 }
 seedDatabase().catch(e => {

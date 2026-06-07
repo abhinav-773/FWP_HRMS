@@ -29,6 +29,16 @@ export const getTeamLeaves = async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 };
+export const getPendingTeamLeaves = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const leaves = await leaveService.getPendingTeamLeaves(userId);
+        res.json({ data: leaves });
+    }
+    catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
 export const processLeave = async (req, res) => {
     try {
         const userId = req.user.userId;
@@ -39,6 +49,28 @@ export const processLeave = async (req, res) => {
         }
         const leave = await leaveService.processLeave(userId, id, status);
         res.json({ data: leave, message: `Leave request ${status.toLowerCase()}` });
+    }
+    catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+export const approveLeave = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const id = req.params.id;
+        const leave = await leaveService.processLeave(userId, id, 'APPROVED');
+        res.json({ data: leave, message: 'Leave request approved' });
+    }
+    catch (error) {
+        res.status(400).json({ error: error.message });
+    }
+};
+export const rejectLeave = async (req, res) => {
+    try {
+        const userId = req.user.userId;
+        const id = req.params.id;
+        const leave = await leaveService.processLeave(userId, id, 'REJECTED');
+        res.json({ data: leave, message: 'Leave request rejected' });
     }
     catch (error) {
         res.status(400).json({ error: error.message });

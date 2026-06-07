@@ -1,12 +1,11 @@
 import prisma from '../config/prisma';
+import employeeBootstrapService from './employeeBootstrap.service.js';
 // In-memory tracking for active breaks (since Redis might be disabled)
 const activeBreaks = new Map();
 export class AttendanceService {
     async clockIn(userId, location, workFromHome = false) {
-        // Find employee profile
-        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-        if (!profile)
-            throw new Error('Employee profile not found');
+        // Find employee profile safely
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Start of day
         const existingAttendance = await prisma.attendance.findUnique({
@@ -35,9 +34,7 @@ export class AttendanceService {
         });
     }
     async clockOut(userId) {
-        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-        if (!profile)
-            throw new Error('Employee profile not found');
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const attendance = await prisma.attendance.findUnique({
@@ -74,9 +71,7 @@ export class AttendanceService {
         });
     }
     async toggleBreak(userId) {
-        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-        if (!profile)
-            throw new Error('Employee profile not found');
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const attendance = await prisma.attendance.findUnique({
@@ -110,15 +105,11 @@ export class AttendanceService {
         }
     }
     async getBreakStatus(userId) {
-        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-        if (!profile)
-            throw new Error('Employee profile not found');
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
         return { onBreak: activeBreaks.has(profile.id) };
     }
     async getBurnoutCheck(userId) {
-        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-        if (!profile)
-            throw new Error('Employee profile not found');
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
         // Retrieve last 30 days of attendance
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -153,9 +144,7 @@ export class AttendanceService {
         };
     }
     async getMyStats(userId, month, year) {
-        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
-        if (!profile)
-            throw new Error('Employee profile not found');
+        const profile = await employeeBootstrapService.ensureEmployeeProfile(userId);
         const startDate = new Date(year, month - 1, 1);
         const endDate = new Date(year, month, 0);
         return await prisma.attendance.findMany({

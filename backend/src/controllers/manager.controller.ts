@@ -108,7 +108,7 @@ export const getLeaveApprovals = async (req: Request, res: Response, next: NextF
 
 export const approveLeave = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { id } = req.params;
+    const id = req.params.id as string;
     const { status, managerRemarks } = req.body; // status: APPROVED or REJECTED
 
     const request = await prisma.leaveRequest.update({

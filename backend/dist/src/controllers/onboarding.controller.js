@@ -1,10 +1,13 @@
 import onboardingService from '../services/onboarding.service';
 import prisma from '../config/prisma';
 import bcrypt from 'bcryptjs';
-import { io } from '../index';
-export const getOnboardingStatus = async (req, res) => {
+import { io } from '../index.js';
+import employeeBootstrapService from '../services/employeeBootstrap.service.js';
+export const getOnboardingStatus = async (req, res, next) => {
     try {
-        const userId = req.user?.userId;
+        const userId = req.user?.sub || req.user?.userId;
+        // Ensure profile exists
+        await employeeBootstrapService.ensureEmployeeProfile(userId);
         const user = await prisma.user.findUnique({
             where: { id: userId },
             include: {
@@ -19,26 +22,38 @@ export const getOnboardingStatus = async (req, res) => {
             }
         });
         if (!user || !user.EmployeeProfile) {
-            return res.status(404).json({ error: 'Employee profile not found' });
+            return res.json({
+                success: true,
+                data: {
+                    currentStage: 'Pending',
+                    checklist: [],
+                    assignedAssets: []
+                }
+            });
         }
         res.json({
-            user: {
-                fullName: user.fullName,
-                email: user.email,
-                tempPassword: user.tempPassword,
-                status: user.status
-            },
-            profile: user.EmployeeProfile
+            success: true,
+            data: {
+                user: {
+                    fullName: user.fullName,
+                    email: user.email,
+                    tempPassword: user.tempPassword,
+                    status: user.status
+                },
+                profile: user.EmployeeProfile,
+                currentStage: user.EmployeeProfile.onboardingProgress >= 100 ? 'Completed' : 'In Progress',
+                checklist: user.EmployeeProfile.onboardingChecklists || [],
+                assignedAssets: user.EmployeeProfile.itAssets || []
+            }
         });
     }
     catch (error) {
-        console.error('getOnboardingStatus error:', error);
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 export const changePassword = async (req, res) => {
     try {
-        const userId = req.user?.userId;
+        const userId = req.user?.sub || req.user?.userId;
         const { newPassword } = req.body;
         if (!newPassword)
             return res.status(400).json({ error: 'New password is required' });
@@ -82,8 +97,8 @@ const calculateProgress = async (employeeId) => {
 };
 export const uploadDocument = async (req, res) => {
     try {
-        const userId = req.user?.userId;
-        const { taskId } = req.params;
+        const userId = req.user?.sub || req.user?.userId;
+        const taskId = req.params.taskId;
         const file = req.file;
         if (!file)
             return res.status(400).json({ error: 'File is required' });
@@ -176,23 +191,16 @@ export const verifyDocument = async (req, res) => {
                         where: { id: document.userId },
                         data: { status: 'ACTIVE' }
                     });
-                    await prisma.leaveBalance.createMany({
-                        data: [
-                            { employeeId: employee.id, leaveType: 'SICK', balance: 12 },
-                            { employeeId: employee.id, leaveType: 'CASUAL', balance: 12 },
-                            { employeeId: employee.id, leaveType: 'EARNED', balance: 15 },
-                        ],
-                        skipDuplicates: true
-                    });
-                    await prisma.payrollRecord.create({
+                    /* LeaveBalance removed as it's not in schema, using Payroll */
+                    await prisma.payroll.create({
                         data: {
                             employeeId: employee.id,
                             month: new Date().getMonth() + 1,
                             year: new Date().getFullYear(),
-                            baseSalary: 0,
-                            bonuses: 0,
+                            basicSalary: 0,
+                            allowances: 0,
                             deductions: 0,
-                            netSalary: 0,
+                            netPay: 0,
                             status: 'DRAFT',
                         }
                     });
@@ -200,173 +208,143 @@ export const verifyDocument = async (req, res) => {
                 }
             }
         }
-        res.json({ message:  } `Document \${status}\`, data: document });
-  } catch (error: any) {
-    console.error('verifyDocument error:', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const activateEmployee = async (req: Request, res: Response) => {
-  try {
-    const { employeeId } = req.params;
-
-    const employee = await prisma.employeeProfile.findUnique({
-      where: { id: employeeId },
-      include: { user: true }
-    });
-
-    if (!employee) return res.status(404).json({ error: 'Employee not found' });
-
-    // Mark as active
-    await prisma.user.update({
-      where: { id: employee.userId },
-      data: { status: 'ACTIVE' }
-    });
-
-    // Create default leave balances
-    await prisma.leaveBalance.createMany({
-      data: [
-        { employeeId, leaveType: 'SICK', balance: 12 },
-        { employeeId, leaveType: 'CASUAL', balance: 12 },
-        { employeeId, leaveType: 'EARNED', balance: 15 },
-      ]
-    });
-
-    // Create payroll record (default zeroed out, ready for setup)
-    await prisma.payrollRecord.create({
-      data: {
-        employeeId,
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
-        baseSalary: 0,
-        bonuses: 0,
-        deductions: 0,
-        netSalary: 0,
-        status: 'DRAFT',
-      }
-    });
-
-    // Record attendance activation (optional depending on schema, let's skip if no specific table needs it, usually attendance is daily)
-
-    res.json({ message: 'Employee activated successfully with payroll and leave accounts setup.' });
-  } catch (error: any) {
-    console.error('activateEmployee error:', error);
-    res.status(500).json({ error: error.message });
-  }
-};
-
-export const createChecklist = async (req: Request, res: Response) => {
-  try {
-    const { employeeId, title, description, tasks } = req.body;
-    const checklist = await onboardingService.createChecklist(employeeId, title, description, tasks);
-    res.status(201).json({ data: checklist, message: 'Onboarding checklist created successfully' });
-  } catch (error: any) {
-    console.error('createChecklist error:', error);
-    res.status(500).json({ error: error.message || 'Failed to create onboarding checklist' });
-  }
-};
-
-export const getMyChecklist = async (req: Request, res: Response) => {
-  try {
-    // Get the employee profile for the current user
-    const userId = (req as any).user?.userId;
-    const employee = await prisma.employeeProfile.findUnique({
-      where: { userId }
-    });
-    if (!employee) {
-      return res.status(404).json({ error: 'Employee profile not found' });
+        res.json({ message: `Document ${status}`, data: document });
     }
-
-    const checklist = await onboardingService.getEmployeeChecklist(employee.id);
-    res.json({ data: checklist });
-  } catch (error: any) {
-    console.error('getMyChecklist error:', error);
-    res.status(500).json({ error: 'Failed to fetch onboarding checklist' });
-  }
-};
-
-export const getEmployeeChecklist = async (req: Request, res: Response) => {
-  try {
-    const checklist = await onboardingService.getEmployeeChecklist(req.params.employeeId as string);
-    res.json({ data: checklist });
-  } catch (error: any) {
-    console.error('getEmployeeChecklist error:', error);
-    res.status(500).json({ error: 'Failed to fetch onboarding checklist' });
-  }
-};
-
-export const getAllChecklists = async (req: Request, res: Response) => {
-  try {
-    const checklists = await onboardingService.getAllChecklists();
-    res.json({ data: checklists });
-  } catch (error: any) {
-    console.error('getAllChecklists error:', error);
-    res.status(500).json({ error: 'Failed to fetch onboarding checklists' });
-  }
-};
-
-export const updateTask = async (req: Request, res: Response) => {
-  try {
-    const { status, documentUrl } = req.body;
-    const updatedTask = await onboardingService.updateTaskStatus(req.params.taskId as string, status, documentUrl);
-    res.json({ data: updatedTask, message: 'Onboarding task updated successfully' });
-  } catch (error: any) {
-    console.error('updateTask error:', error);
-    res.status(500).json({ error: error.message || 'Failed to update onboarding task' });
-  }
-};
-
-export const assignAsset = async (req: Request, res: Response) => {
-  try {
-    const { employeeId, assetName, assetType, serialNumber } = req.body;
-    const asset = await onboardingService.assignAsset(employeeId, assetName, assetType, serialNumber);
-    res.status(201).json({ data: asset, message: 'IT Asset assigned successfully' });
-  } catch (error: any) {
-    console.error('assignAsset error:', error);
-    res.status(500).json({ error: error.message || 'Failed to assign IT Asset' });
-  }
-};
-
-export const getMyAssets = async (req: Request, res: Response) => {
-  try {
-    const userId = (req as any).user?.userId;
-    const employee = await prisma.employeeProfile.findUnique({
-      where: { userId }
-    });
-    if (!employee) {
-      return res.status(404).json({ error: 'Employee profile not found' });
+    catch (error) {
+        console.error('verifyDocument error:', error);
+        res.status(500).json({ error: error.message });
     }
-
-    const assets = await onboardingService.getEmployeeAssets(employee.id);
-    res.json({ data: assets });
-  } catch (error: any) {
-    console.error('getMyAssets error:', error);
-    res.status(500).json({ error: 'Failed to fetch IT assets' });
-  }
 };
-
-export const getAllAssets = async (req: Request, res: Response) => {
-  try {
-    const assets = await onboardingService.getAllAssets();
-    res.json({ data: assets });
-  } catch (error: any) {
-    console.error('getAllAssets error:', error);
-    res.status(500).json({ error: 'Failed to fetch IT assets' });
-  }
-};
-
-export const releaseAsset = async (req: Request, res: Response) => {
-  try {
-    const asset = await onboardingService.releaseAsset(req.params.assetId as string);
-    res.json({ data: asset, message: 'IT Asset released successfully' });
-  } catch (error: any) {
-    console.error('releaseAsset error:', error);
-    res.status(500).json({ error: error.message || 'Failed to release IT Asset' });
-  }
-};
-        );
+export const activateEmployee = async (req, res) => {
+    try {
+        const employeeId = req.params.employeeId;
+        const employee = await prisma.employeeProfile.findUnique({
+            where: { id: employeeId },
+            include: { user: true }
+        });
+        if (!employee)
+            return res.status(404).json({ error: 'Employee not found' });
+        // Mark as active
+        await prisma.user.update({
+            where: { id: employee.userId },
+            data: { status: 'ACTIVE' }
+        });
+        /* LeaveBalance removed, using Payroll */
+        // Create payroll record (default zeroed out, ready for setup)
+        await prisma.payroll.create({
+            data: {
+                employeeId,
+                month: new Date().getMonth() + 1,
+                year: new Date().getFullYear(),
+                basicSalary: 0,
+                allowances: 0,
+                deductions: 0,
+                netPay: 0,
+                status: 'DRAFT',
+            }
+        });
+        // Record attendance activation (optional depending on schema, let's skip if no specific table needs it, usually attendance is daily)
+        res.json({ message: 'Employee activated successfully with payroll and leave accounts setup.' });
     }
-    finally { }
+    catch (error) {
+        console.error('activateEmployee error:', error);
+        res.status(500).json({ error: error.message });
+    }
+};
+export const createChecklist = async (req, res) => {
+    try {
+        const { employeeId, title, description, tasks } = req.body;
+        const checklist = await onboardingService.createChecklist(employeeId, title, description, tasks);
+        res.status(201).json({ data: checklist, message: 'Onboarding checklist created successfully' });
+    }
+    catch (error) {
+        console.error('createChecklist error:', error);
+        res.status(500).json({ error: error.message || 'Failed to create onboarding checklist' });
+    }
+};
+export const getMyChecklist = async (req, res, next) => {
+    try {
+        // Get the employee profile for the current user
+        const userId = req.user?.sub || req.user?.userId;
+        const employee = await employeeBootstrapService.ensureEmployeeProfile(userId);
+        const checklist = await onboardingService.getEmployeeChecklist(employee.id);
+        res.json({ success: true, data: checklist || [] });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+export const getEmployeeChecklist = async (req, res) => {
+    try {
+        const checklist = await onboardingService.getEmployeeChecklist(req.params.employeeId);
+        res.json({ data: checklist });
+    }
+    catch (error) {
+        console.error('getEmployeeChecklist error:', error);
+        res.status(500).json({ error: 'Failed to fetch onboarding checklist' });
+    }
+};
+export const getAllChecklists = async (req, res) => {
+    try {
+        const checklists = await onboardingService.getAllChecklists();
+        res.json({ data: checklists });
+    }
+    catch (error) {
+        console.error('getAllChecklists error:', error);
+        res.status(500).json({ error: 'Failed to fetch onboarding checklists' });
+    }
+};
+export const updateTask = async (req, res) => {
+    try {
+        const { status, documentUrl } = req.body;
+        const updatedTask = await onboardingService.updateTaskStatus(req.params.taskId, status, documentUrl);
+        res.json({ data: updatedTask, message: 'Onboarding task updated successfully' });
+    }
+    catch (error) {
+        console.error('updateTask error:', error);
+        res.status(500).json({ error: error.message || 'Failed to update onboarding task' });
+    }
+};
+export const assignAsset = async (req, res) => {
+    try {
+        const { employeeId, assetName, assetType, serialNumber } = req.body;
+        const asset = await onboardingService.assignAsset(employeeId, assetName, assetType, serialNumber);
+        res.status(201).json({ data: asset, message: 'IT Asset assigned successfully' });
+    }
+    catch (error) {
+        console.error('assignAsset error:', error);
+        res.status(500).json({ error: error.message || 'Failed to assign IT Asset' });
+    }
+};
+export const getMyAssets = async (req, res, next) => {
+    try {
+        const userId = req.user?.sub || req.user?.userId;
+        const employee = await employeeBootstrapService.ensureEmployeeProfile(userId);
+        const assets = await onboardingService.getEmployeeAssets(employee.id);
+        res.json({ success: true, data: assets || [] });
+    }
+    catch (error) {
+        next(error);
+    }
+};
+export const getAllAssets = async (req, res) => {
+    try {
+        const assets = await onboardingService.getAllAssets();
+        res.json({ data: assets });
+    }
+    catch (error) {
+        console.error('getAllAssets error:', error);
+        res.status(500).json({ error: 'Failed to fetch IT assets' });
+    }
+};
+export const releaseAsset = async (req, res) => {
+    try {
+        const asset = await onboardingService.releaseAsset(req.params.assetId);
+        res.json({ data: asset, message: 'IT Asset released successfully' });
+    }
+    catch (error) {
+        console.error('releaseAsset error:', error);
+        res.status(500).json({ error: error.message || 'Failed to release IT Asset' });
+    }
 };
 //# sourceMappingURL=onboarding.controller.js.map

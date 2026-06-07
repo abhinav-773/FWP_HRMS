@@ -1,4 +1,5 @@
 import employeeService from '../services/employee.service';
+import employeeProvisioningService from '../services/employeeProvisioning.service';
 export const getEmployees = async (req, res) => {
     try {
         const employees = await employeeService.getAllEmployees(req.query);
@@ -23,12 +24,15 @@ export const getEmployeeById = async (req, res) => {
 };
 export const createEmployee = async (req, res) => {
     try {
-        const newEmployee = await employeeService.createEmployee(req.body);
-        res.status(201).json({ data: newEmployee, message: 'Employee created successfully' });
+        const result = await employeeProvisioningService.provisionEmployee(req.body);
+        res.status(201).json({
+            data: result.profile,
+            tempPassword: result.tempPassword, // Return temp password to UI for demo purposes
+            message: 'Employee created and provisioned successfully'
+        });
     }
     catch (error) {
         console.error('createEmployee error:', error);
-        // Simple duplicate check for demo
         if (error.code === 'P2002') {
             return res.status(400).json({ error: 'Email or Employee ID already exists' });
         }

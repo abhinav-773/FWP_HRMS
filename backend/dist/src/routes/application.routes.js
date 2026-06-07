@@ -1,10 +1,10 @@
 import express from 'express';
 import { applyForJob, getApplications, updateStage, updateNotes, retriggerAi, overrideDecision } from '../controllers/application.controller';
 import { requireAuth } from '../middlewares/auth.middleware';
-import { requireRole } from '../middlewares/role.middleware';
+import { requireAnyRole } from '../middlewares/role.middleware';
 const router = express.Router();
 router.use(requireAuth);
-router.use(requireRole(['SUPER_ADMIN', 'HR_RECRUITER']));
+router.use(requireAnyRole(['SUPER_ADMIN', 'HR_RECRUITER']));
 router.post('/', applyForJob);
 router.get('/', getApplications);
 router.put('/:id/stage', updateStage);

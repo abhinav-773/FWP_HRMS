@@ -49,16 +49,16 @@ export class InterviewService {
     try {
       if (isAiInterview) {
         await emailService.sendCandidateInterviewInvite(
-          interview.application.candidate.email,
-          interview.application.candidate.fullName,
-          interview.application.job.title,
+          interview.application!.candidate.email,
+          interview.application!.candidate.fullName,
+          interview.application!.job.title,
           interview.meetingUrl!
         );
       } else {
         await emailService.sendCandidateF2FInvite(
-          interview.application.candidate.email,
-          interview.application.candidate.fullName,
-          interview.application.job.title,
+          interview.application!.candidate.email,
+          interview.application!.candidate.fullName,
+          interview.application!.job.title,
           interview.meetingUrl!,
           interview.interviewRounds,
           interview.scheduledAt,

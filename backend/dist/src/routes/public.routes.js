@@ -3,6 +3,8 @@ import prisma from '../config/prisma';
 import { upload } from '../middlewares/upload.middleware';
 import screeningQueueService from '../services/screeningQueue.service';
 import { logger } from '../config/logger';
+import emailService from '../services/email.service';
+import { eventBus } from '../services/eventBus';
 const router = express.Router();
 // 1. Get all public open job postings
 router.get('/jobs', async (req, res) => {
@@ -148,6 +150,11 @@ router.post('/apply', upload.single('resume'), async (req, res) => {
         });
         // Queue application for AI screening asynchronously
         screeningQueueService.queueApplication(application.id);
+        // Emit socket event for real-time ATS update via eventBus
+        eventBus.emit('ats:update', {
+            jobId,
+            activity: { applicationId: application.id }
+        });
         res.status(201).json({
             message: 'Your application has been submitted successfully and is being screened.',
             data: application
@@ -155,6 +162,37 @@ router.post('/apply', upload.single('resume'), async (req, res) => {
     }
     catch (error) {
         logger.error('Public job application submission failed:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+// 4. Submit an Enterprise Demo Request
+router.post('/demo-request', async (req, res) => {
+    try {
+        const { name, company, email, companySize, message } = req.body;
+        if (!name || !company || !email) {
+            return res.status(400).json({ error: 'Name, Company, and Email are required fields.' });
+        }
+        // Save to DB
+        const demoRequest = await prisma.demoRequest.create({
+            data: {
+                name,
+                company,
+                email,
+                companySize,
+                message,
+            }
+        });
+        // Notify Admin via SMTP
+        // Assuming admin email is configured or defaulting to SMTP_USER
+        const adminEmail = process.env.ADMIN_EMAIL || process.env.SMTP_USER || 'admin@hrgpt.com';
+        await emailService.sendDemoRequestNotification(adminEmail, name, company, message);
+        res.status(201).json({
+            message: 'Demo request submitted successfully. Our enterprise team will contact you shortly.',
+            data: demoRequest
+        });
+    }
+    catch (error) {
+        logger.error('Enterprise Demo request submission failed:', error);
         res.status(500).json({ error: error.message });
     }
 });

@@ -1,10 +1,11 @@
-import express from 'express';
-import { getDashboardMetrics } from '../controllers/ats-analytics.controller';
+import { Router } from 'express';
 import { requireAuth } from '../middlewares/auth.middleware';
-import { requireRole } from '../middlewares/role.middleware';
-const router = express.Router();
+import { requireAnyRole } from '../middlewares/role.middleware';
+import { getDashboardMetrics } from '../controllers/ats-analytics.controller';
+const router = Router();
 router.use(requireAuth);
-router.use(requireRole(['SUPER_ADMIN', 'HR_RECRUITER']));
+// Apply RBAC: Admin, Recruiter, and Manager can view analytics
+router.use(requireAnyRole(['SUPER_ADMIN', 'HR_RECRUITER', 'SENIOR_MANAGER']));
 router.get('/metrics', getDashboardMetrics);
 export default router;
 //# sourceMappingURL=ats-analytics.routes.js.map

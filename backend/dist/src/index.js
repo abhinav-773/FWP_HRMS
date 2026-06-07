@@ -11,6 +11,7 @@ import { env } from './config/env';
 import { logger } from './config/logger';
 import redisClient from './config/redis';
 import { globalLimiter, authLimiter } from './middlewares/rateLimiter';
+import { globalErrorHandler } from './middlewares/globalErrorHandler';
 import prisma from './config/prisma';
 import authRoutes from './routes/auth.routes';
 import customAuthRoutes from './routes/auth.routes'; // Alias for new routes
@@ -35,11 +36,12 @@ import onboardingRoutes from './routes/onboarding.routes';
 import performanceRoutes from './routes/performance.routes';
 import workflowRoutes from './routes/workflow.routes';
 import publicRoutes from './routes/public.routes';
+import managerRoutes from './routes/manager.routes';
+import taskRoutes from './routes/task.routes';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { setupSocketService } from './services/socket.service';
-import { clerkMiddleware } from '@clerk/express';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const app = express();
@@ -61,11 +63,9 @@ app.use(helmet({
 }));
 app.use(hpp()); // Prevent HTTP Parameter Pollution
 app.use(cors({
-    origin: env.NODE_ENV === 'production' ? ['https://app.hrgpt.com', 'http://localhost'] : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+    origin: env.NODE_ENV === 'production' ? ['https://app.hiremind.com', 'http://localhost'] : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
     credentials: true,
 }));
-// Apply Clerk middleware to parse tokens natively
-app.use(clerkMiddleware({ secretKey: env.CLERK_SECRET_KEY, publishableKey: env.CLERK_PUBLISHABLE_KEY }));
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
@@ -73,7 +73,7 @@ app.use(cookieParser());
 app.use('/api/', globalLimiter);
 export const io = new Server(server, {
     cors: {
-        origin: env.NODE_ENV === 'production' ? ['https://app.hrgpt.com', 'http://localhost'] : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+        origin: env.NODE_ENV === 'production' ? ['https://app.hiremind.com', 'http://localhost'] : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
         credentials: true,
     }
 });
@@ -103,6 +103,8 @@ app.use('/api/v1/bulk-upload', bulkUploadRoutes);
 app.use('/api/v1/onboarding', onboardingRoutes);
 app.use('/api/v1/performance', performanceRoutes);
 app.use('/api/v1/workflows', workflowRoutes);
+app.use('/api/v1/manager', managerRoutes);
+app.use('/api/v1/tasks', taskRoutes);
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 // Advanced Health Check
@@ -130,13 +132,15 @@ app.get('/api/health', async (req, res) => {
     }
     res.status((dbStatus === 'ok' && (redisStatus === 'ok' || redisStatus === 'disabled')) ? 200 : 503).json({
         status: 'ok',
-        service: 'HRGPT Backend API',
+        service: 'HireMind Backend API',
         database: dbStatus,
         redis: redisStatus,
         environment: env.NODE_ENV,
         timestamp: new Date().toISOString()
     });
 });
+// Global Error Handler
+app.use(globalErrorHandler);
 const PORT = env.PORT || 5000;
 server.listen(PORT, () => {
     logger.info(`✅ Backend server running on port ${PORT} in ${env.NODE_ENV} mode`);

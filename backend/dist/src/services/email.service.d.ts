@@ -9,6 +9,7 @@ export declare class EmailService {
     sendCandidateRejection(email: string, name: string, jobTitle: string): Promise<void>;
     sendRecruiterAlert(recruiterEmail: string, candidateName: string, jobTitle: string, score: number, stages: string): Promise<void>;
     sendOnboardingCredentialsEmail(email: string, name: string, employeeId: string, tempPassword: string): Promise<void>;
+    sendDemoRequestNotification(adminEmail: string, name: string, company: string, message: string): Promise<void>;
 }
 declare const _default: EmailService;
 export default _default;

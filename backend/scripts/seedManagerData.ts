@@ -73,7 +73,7 @@ async function main() {
       title: 'Frontend Refactoring',
       description: 'Refactor the React components',
       priority: 'HIGH',
-      assignedToEmployeeId: employees[0].id,
+      assignedToEmployeeId: employees[0]!.id,
       assignedByManagerId: managerProfile.id,
       department: 'Engineering',
       dueDate: new Date(Date.now() + 86400000 * 2), // 2 days
@@ -85,7 +85,7 @@ async function main() {
   // Create 2 Leave Requests
   await prisma.leaveRequest.create({
     data: {
-      employeeId: employees[1].id,
+      employeeId: employees[1]!.id,
       managerId: managerProfile.id,
       type: 'SICK',
       startDate: new Date(),

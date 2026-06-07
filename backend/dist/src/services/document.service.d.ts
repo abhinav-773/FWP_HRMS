@@ -20,7 +20,7 @@ export declare class DocumentService {
         fileUrl: string;
         verificationStatus: import(".prisma/client").$Enums.DocumentVerificationStatus;
     }[]>;
-    verifyDocument(documentId: string): Promise<{
+    verifyDocument(documentId: string, status?: 'VERIFIED' | 'REJECTED' | 'PENDING'): Promise<{
         id: string;
         userId: string;
         createdAt: Date;

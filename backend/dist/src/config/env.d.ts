@@ -3,11 +3,10 @@ export declare const env: {
     PORT: string;
     DATABASE_URL: string;
     MONGODB_URI: string;
-    CLERK_SECRET_KEY: string;
-    CLERK_PUBLISHABLE_KEY: string;
-    JWT_SECRET?: string | undefined;
-    JWT_REFRESH_SECRET?: string | undefined;
+    JWT_SECRET: string;
+    JWT_REFRESH_SECRET: string;
     REDIS_URL?: string | undefined;
     OLLAMA_BASE_URL?: string | undefined;
+    GEMINI_API_KEY?: string | undefined;
 };
 //# sourceMappingURL=env.d.ts.map

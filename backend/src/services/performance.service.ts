@@ -43,8 +43,12 @@ export class PerformanceService {
         employeeId,
         reviewerId,
         reviewPeriod,
-        rating,
-        comments
+        technicalRating: rating,
+        communicationRating: rating,
+        productivityRating: rating,
+        teamworkRating: rating,
+        overallRating: rating,
+        managerRemarks: comments
       }
     });
   }
@@ -119,7 +123,7 @@ export class PerformanceService {
       ${goals.map(g => `- ${g.title}: Progress: ${g.progress}%, Status: ${g.status}`).join('\n')}
 
       Manager Comments:
-      ${reviews.map(r => `- Rating ${r.rating}/5: "${r.comments}"`).join('\n')}
+      ${reviews.map(r => `- Rating ${r.technicalRating}/5: "${r.managerRemarks}"`).join('\n')}
 
       Peer Feedback Comments:
       ${feedbacks.map(f => `- Rating ${f.rating || 'N/A'}/5: "${f.feedbackText}"`).join('\n')}

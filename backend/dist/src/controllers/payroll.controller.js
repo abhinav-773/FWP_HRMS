@@ -1,6 +1,6 @@
 import payrollService from '../services/payroll.service';
 import prisma from '../config/prisma';
-export const generatePayroll = async (req, res) => {
+export const generatePayroll = async (req, res, next) => {
     try {
         const { month, year } = req.body;
         if (!month || !year)
@@ -9,30 +9,32 @@ export const generatePayroll = async (req, res) => {
         res.status(201).json({ data: payrolls, message: `Generated ${payrolls.length} payroll records.` });
     }
     catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
-export const getMyPayslips = async (req, res) => {
+export const getMyPayslips = async (req, res, next) => {
     try {
-        const userId = req.user.userId;
+        const userId = req.user?.sub || req.user?.userId;
+        if (!userId)
+            return res.json({ success: true, data: [] });
         const slips = await payrollService.getMyPayslips(userId);
-        res.json({ data: slips });
+        res.json({ success: true, data: slips || [] });
     }
     catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
-export const markAsPaid = async (req, res) => {
+export const markAsPaid = async (req, res, next) => {
     try {
         const id = req.params.id;
         const slip = await payrollService.markAsPaid(id);
-        res.json({ data: slip, message: 'Payroll marked as PAID' });
+        res.json({ success: true, data: slip, message: 'Payroll marked as PAID' });
     }
     catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
-export const downloadPayslip = async (req, res) => {
+export const downloadPayslip = async (req, res, next) => {
     try {
         const id = req.params.id;
         const payroll = await prisma.payroll.findUnique({
@@ -72,7 +74,7 @@ export const downloadPayslip = async (req, res) => {
       <body>
         <div class="container">
           <div class="header">
-            <h1>HRGPT SYSTEMS</h1>
+            <h1>HireMind SYSTEMS</h1>
             <p>Employee Pay Slip</p>
           </div>
           <table class="details-table">
@@ -124,7 +126,7 @@ export const downloadPayslip = async (req, res) => {
         res.send(htmlContent);
     }
     catch (error) {
-        res.status(500).json({ error: error.message });
+        next(error);
     }
 };
 //# sourceMappingURL=payroll.controller.js.map

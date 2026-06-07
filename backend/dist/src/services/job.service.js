@@ -39,7 +39,7 @@ export class JobService {
                 location: data.location,
                 experienceRequired: data.experienceRequired ? parseInt(data.experienceRequired, 10) : 0,
                 aiSummary,
-                status: data.status || 'DRAFT',
+                status: data.status || 'OPEN',
                 openings: data.openings ? parseInt(data.openings, 10) : 1,
                 postedById: userId,
                 closingDate: data.closingDate ? new Date(data.closingDate) : null,

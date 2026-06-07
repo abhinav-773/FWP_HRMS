@@ -1,8 +1,9 @@
-import { verifyClerkToken, resolveClerkUser } from '../middlewares/clerk.middleware';
+import jwt from 'jsonwebtoken';
+import { env } from '../config/env';
 import { eventBus } from './eventBus';
 import { setupInterviewGateway } from './interview.gateway';
 export const setupSocketService = (io) => {
-    // Authentication Middleware — verify Clerk JWT OR candidate meetingUrl
+    // Authentication Middleware — verify JWT OR candidate meetingUrl
     io.use(async (socket, next) => {
         const token = socket.handshake.auth?.token || socket.handshake.query?.token;
         const meetingUrl = socket.handshake.auth?.meetingUrl || socket.handshake.query?.meetingUrl;
@@ -16,16 +17,15 @@ export const setupSocketService = (io) => {
             return next(new Error('Authentication error: Missing token or meetingUrl'));
         }
         try {
-            const payload = await verifyClerkToken(token);
-            if (!payload || !payload.sub) {
-                return next(new Error('Authentication error: Invalid token'));
-            }
-            const userData = await resolveClerkUser(payload.sub);
-            socket.user = userData;
+            const decoded = jwt.verify(token, env.JWT_SECRET || 'fallback-secret-key-123');
+            socket.user = {
+                userId: decoded.sub,
+                role: decoded.role,
+            };
             next();
         }
         catch (err) {
-            return next(new Error('Authentication error: Token verification failed'));
+            return next(new Error('Authentication error: Invalid Token'));
         }
     });
     io.on('connection', (socket) => {
@@ -85,6 +85,28 @@ export const setupSocketService = (io) => {
     // Optional: Global Activity Feed broadcast
     eventBus.on('activity:global', (activity) => {
         io.to('company_general').emit('global_activity', activity);
+    });
+    // Manager & Team Events
+    eventBus.on('task:assigned', ({ employeeId, task }) => {
+        io.to(`user_${employeeId}`).emit('TASK_ASSIGNED', task);
+    });
+    eventBus.on('task:completed', ({ managerId, task }) => {
+        if (managerId)
+            io.to(`user_${managerId}`).emit('TASK_COMPLETED', task);
+    });
+    eventBus.on('leave:requested', ({ managerId, request }) => {
+        if (managerId)
+            io.to(`user_${managerId}`).emit('LEAVE_REQUESTED', request);
+    });
+    eventBus.on('leave:approved', ({ employeeId, request }) => {
+        io.to(`user_${employeeId}`).emit('LEAVE_APPROVED', request);
+    });
+    eventBus.on('performance:review_submitted', ({ employeeId, review }) => {
+        io.to(`user_${employeeId}`).emit('PERFORMANCE_REVIEW_SUBMITTED', review);
+    });
+    eventBus.on('interview:feedback_added', ({ interviewId, feedback }) => {
+        // broadcast to anyone watching the interview details
+        io.emit('INTERVIEW_FEEDBACK_ADDED', { interviewId, feedback });
     });
 };
 //# sourceMappingURL=socket.service.js.map

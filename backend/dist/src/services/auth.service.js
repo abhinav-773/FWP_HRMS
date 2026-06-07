@@ -1,4 +1,5 @@
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto';
 import prisma from '../config/prisma';
 export class AuthService {
     ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-123';
@@ -11,24 +12,26 @@ export class AuthService {
             sub: user.id,
             email: user.email,
             role: user.role,
-            status: user.status
+            status: user.status,
+            employeeProfileId: user.EmployeeProfile?.id || null,
+            departmentId: user.EmployeeProfile?.departmentId || null
         };
         const accessToken = jwt.sign(payload, this.ACCESS_TOKEN_SECRET, { expiresIn: this.ACCESS_TOKEN_EXPIRY });
         const refreshToken = jwt.sign(payload, this.REFRESH_TOKEN_SECRET, { expiresIn: this.REFRESH_TOKEN_EXPIRY });
         return { accessToken, refreshToken };
     }
     // Create a session in DB
-    async createSession(userId, refreshToken, ipAddress, userAgent) {
+    async createSession(userId, refreshToken) {
         // Expiry matches 7d
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
+        const hashedToken = crypto.createHash('sha256').update(refreshToken).digest('hex');
         return await prisma.authSession.create({
             data: {
                 userId,
-                refreshToken,
+                refreshToken: hashedToken,
                 expiresAt,
-                ipAddress,
-                userAgent
+                lastActiveAt: new Date()
             }
         });
     }
@@ -36,23 +39,31 @@ export class AuthService {
     async refreshSession(token) {
         try {
             const decoded = jwt.verify(token, this.REFRESH_TOKEN_SECRET);
-            // Verify session exists and is valid in DB
-            const session = await prisma.authSession.findUnique({ where: { refreshToken: token } });
+            // Verify session exists and is valid in DB using hashed token
+            const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+            const session = await prisma.authSession.findUnique({ where: { refreshToken: hashedToken } });
             if (!session || !session.isValid || session.expiresAt < new Date()) {
                 throw new Error('Invalid or expired refresh session');
             }
             // Find user
-            const user = await prisma.user.findUnique({ where: { id: decoded.sub } });
+            const user = await prisma.user.findUnique({
+                where: { id: decoded.sub },
+                include: { EmployeeProfile: true }
+            });
             if (!user || user.status !== 'ACTIVE') {
                 throw new Error('User is inactive or not found');
             }
             // Generate new tokens
             const newTokens = this.generateTokens(user);
-            // Rotate refresh token
-            await prisma.$transaction([
-                prisma.authSession.delete({ where: { id: session.id } }),
-                this.createSession(user.id, newTokens.refreshToken, session.ipAddress || undefined, session.userAgent || undefined)
-            ]);
+            // Simplify: Reuse the existing session record but update the token hash
+            const newHashedToken = crypto.createHash('sha256').update(newTokens.refreshToken).digest('hex');
+            await prisma.authSession.update({
+                where: { id: session.id },
+                data: {
+                    refreshToken: newHashedToken,
+                    lastActiveAt: new Date()
+                }
+            });
             return { user, ...newTokens };
         }
         catch (error) {
@@ -60,7 +71,8 @@ export class AuthService {
         }
     }
     async logout(token) {
-        await prisma.authSession.deleteMany({ where: { refreshToken: token } });
+        const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
+        await prisma.authSession.deleteMany({ where: { refreshToken: hashedToken } });
     }
     async generatePasswordResetToken(email) {
         const user = await prisma.user.findUnique({ where: { email } });

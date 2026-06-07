@@ -14,7 +14,7 @@ export const assignTask = async (req: Request, res: Response) => {
 export const updateTaskProgress = async (req: Request, res: Response) => {
   try {
     const userId = (req as any).user.userId;
-    const { id } = req.params;
+    const id = req.params.id as string;
     const task = await taskService.updateTaskProgress(userId, id, req.body);
     res.json({ data: task, message: 'Task updated successfully' });
   } catch (error: any) {

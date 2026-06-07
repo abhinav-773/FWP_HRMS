@@ -18,7 +18,7 @@ export class InterviewService {
                 interviewType: isAiInterview ? 'AI' : 'FACE_TO_FACE',
                 meetingProvider: isAiInterview ? 'AI_ROOM' : data.meetingProvider || 'GOOGLE_MEET',
                 interviewRounds: data.interviewRounds || (isAiInterview ? ['AI Voice Evaluation'] : ['Technical Round']),
-                interviewerName: data.interviewerName || (isAiInterview ? 'HRGPT AI Agent' : 'Recruiter'),
+                interviewerName: data.interviewerName || (isAiInterview ? 'HireMind AI Agent' : 'Recruiter'),
                 interviewNotes: data.interviewNotes || '',
                 interviewStatus: 'INTERVIEW_SCHEDULED'
             },

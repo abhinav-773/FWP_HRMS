@@ -1,11 +1,12 @@
 import prisma from '../config/prisma';
+import { eventBus } from './eventBus';
 export class LeaveService {
     async applyLeave(userId, data) {
         const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
         if (!profile)
             throw new Error('Employee profile not found');
         const { type, startDate, endDate, reason } = data;
-        return await prisma.leaveRequest.create({
+        const leave = await prisma.leaveRequest.create({
             data: {
                 employeeId: profile.id,
                 type,
@@ -15,6 +16,13 @@ export class LeaveService {
                 managerId: profile.managerId // Automatically assign to manager for approval
             }
         });
+        if (profile.managerId) {
+            eventBus.emit('leave:requested', {
+                managerId: profile.managerId,
+                request: leave
+            });
+        }
+        return leave;
     }
     async getMyLeaves(userId) {
         const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
@@ -33,7 +41,21 @@ export class LeaveService {
             where: { managerId: profile.id },
             include: {
                 employee: {
-                    include: { user: { select: { fullName: true } } }
+                    include: { user: { select: { fullName: true, email: true } } }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+    async getPendingTeamLeaves(userId) {
+        const profile = await prisma.employeeProfile.findUnique({ where: { userId } });
+        if (!profile)
+            throw new Error('Employee profile not found');
+        return await prisma.leaveRequest.findMany({
+            where: { managerId: profile.id, status: 'PENDING' },
+            include: {
+                employee: {
+                    include: { user: { select: { fullName: true, email: true } } }
                 }
             },
             orderBy: { createdAt: 'desc' }
@@ -49,10 +71,17 @@ export class LeaveService {
         if (leave.managerId !== managerProfile.id) {
             throw new Error('Unauthorized: You are not the manager for this leave request');
         }
-        return await prisma.leaveRequest.update({
+        const updatedLeave = await prisma.leaveRequest.update({
             where: { id: leaveId },
             data: { status }
         });
+        if (status === 'APPROVED') {
+            eventBus.emit('leave:approved', { employeeId: leave.employeeId, request: updatedLeave });
+        }
+        else {
+            eventBus.emit('leave:rejected', { employeeId: leave.employeeId, request: updatedLeave });
+        }
+        return updatedLeave;
     }
 }
 export default new LeaveService();

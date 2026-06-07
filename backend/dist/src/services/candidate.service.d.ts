@@ -51,13 +51,16 @@ export declare class CandidateService {
         applications: ({
             interviews: {
                 id: string;
+                employeeId: string | null;
                 createdAt: Date;
                 updatedAt: Date;
                 status: import(".prisma/client").$Enums.InterviewStatus;
                 type: import(".prisma/client").$Enums.InterviewType;
+                title: string | null;
+                date: string | null;
                 location: string | null;
+                notes: string | null;
                 interviewStatus: string | null;
-                applicationId: string;
                 scheduledAt: Date;
                 durationMins: number;
                 feedback: string | null;
@@ -71,6 +74,8 @@ export declare class CandidateService {
                 interviewRounds: string[];
                 interviewerName: string | null;
                 interviewNotes: string | null;
+                time: string | null;
+                applicationId: string | null;
                 interviewerId: string;
             }[];
             job: {
@@ -84,11 +89,11 @@ export declare class CandidateService {
             } & {
                 id: string;
                 createdAt: Date;
+                applicationId: string;
                 fromStage: import(".prisma/client").$Enums.ApplicationStage | null;
                 toStage: import(".prisma/client").$Enums.ApplicationStage;
                 note: string | null;
                 performedById: string;
-                applicationId: string;
             })[];
         } & {
             id: string;

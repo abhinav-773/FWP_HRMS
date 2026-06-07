@@ -6,12 +6,11 @@ const envSchema = z.object({
     PORT: z.string().default('5000'),
     DATABASE_URL: z.string().url(),
     MONGODB_URI: z.string().url(),
-    CLERK_SECRET_KEY: z.string().min(5),
-    CLERK_PUBLISHABLE_KEY: z.string().startsWith('pk_'),
-    JWT_SECRET: z.string().optional(),
-    JWT_REFRESH_SECRET: z.string().optional(),
+    JWT_SECRET: z.string().min(10),
+    JWT_REFRESH_SECRET: z.string().min(10),
     REDIS_URL: z.string().url().optional(),
     OLLAMA_BASE_URL: z.string().url().optional(),
+    GEMINI_API_KEY: z.string().optional(),
 });
 const envParsed = envSchema.safeParse(process.env);
 if (!envParsed.success) {
