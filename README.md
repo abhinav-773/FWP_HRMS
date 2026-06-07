@@ -1,4 +1,4 @@
-# HRGPT
+# HireMind
 
 AI-powered HRMS SaaS platform.
 
