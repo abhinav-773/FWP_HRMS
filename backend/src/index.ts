@@ -72,7 +72,9 @@ app.use(helmet({
 app.use(hpp()); // Prevent HTTP Parameter Pollution
 
 app.use(cors({
-  origin: env.NODE_ENV === 'production' ? ['https://app.hiremind.com', 'http://localhost'] : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+  origin: env.NODE_ENV === 'production' 
+    ? [process.env.FRONTEND_URL || 'https://fwp-hrms.vercel.app']
+    : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
   credentials: true,
 }));
 
@@ -87,7 +89,9 @@ app.use('/api/', globalLimiter);
 
 export const io = new Server(server, {
   cors: {
-    origin: env.NODE_ENV === 'production' ? ['https://app.hiremind.com', 'http://localhost'] : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
+    origin: env.NODE_ENV === 'production' 
+      ? [process.env.FRONTEND_URL || 'https://fwp-hrms.vercel.app']
+      : ['http://localhost:5173', 'http://localhost:5174', 'http://localhost:5175'],
     credentials: true,
   }
 });

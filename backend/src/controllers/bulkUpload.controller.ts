@@ -1,7 +1,6 @@
 import { Request, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { ResumeParserService } from '../services/resumeParser.service';
-import { VectorDbService } from '../services/vectorDb.service';
 import { AiRankingService } from '../services/aiRanking.service';
 import path from 'path';
 import * as fs from 'fs';
@@ -32,16 +31,10 @@ export const bulkUploadResumes = async (req: Request, res: Response) => {
 
         const jobText = `${job.title} ${job.description || ''} ${job.requirements || ''} ${job.skills ? job.skills.join(', ') : ''}`;
         
-        // Ensure Job embedding exists in VectorDB
-        VectorDbService.addJobEmbedding(job.id, jobText, { title: job.title }).then(() => {
-            // Background processing
-            processResumes(files, job, jobText).catch(err => {
-                console.error('Error during background processing of resumes:', err);
-                fs.appendFileSync('bulk_upload_error.log', new Date().toISOString() + ' - Background Process Error: ' + (err.stack || err) + '\n');
-            });
-        }).catch(err => {
-            console.error('Error adding job embedding:', err);
-            fs.appendFileSync('bulk_upload_error.log', new Date().toISOString() + ' - Job Embedding Error: ' + (err.stack || err) + '\n');
+        // Process resumes in background (no VectorDB embedding needed — cloud AI scoring)
+        processResumes(files, job, jobText).catch(err => {
+            console.error('Error during background processing of resumes:', err);
+            fs.appendFileSync('bulk_upload_error.log', new Date().toISOString() + ' - Background Process Error: ' + (err.stack || err) + '\n');
         });
 
     } catch (error) {
@@ -99,11 +92,7 @@ async function processResumes(files: Express.Multer.File[], job: any, jobText: s
                 });
             }
 
-            // 4. Create embedding
-            await VectorDbService.addCandidateEmbedding(candidate.id, rawText, {
-                fullName: candidate.fullName,
-                email: candidate.email
-            });
+            // 4. Embedding step removed — cloud AI scoring via Gemini
 
             // 5. Rank Candidate — pass skills for better scoring when job description is generic
             const ranking = await AiRankingService.rankCandidate(candidate.id, rawText, jobText, candidate.skills);

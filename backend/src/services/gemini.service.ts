@@ -1,17 +1,9 @@
-import { GoogleGenAI } from '@google/genai';
-import { env } from '../config/env.js';
+import { geminiGenerate } from './ai/gemini.service';
 
-// Initialize the client
-const ai = new GoogleGenAI({ apiKey: env.GEMINI_API_KEY || 'dummy_key' });
-
+// Re-export for backward compatibility with existing imports
 export const generateAIResponse = async (prompt: string): Promise<string> => {
   try {
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: prompt,
-    });
-    
-    return response.text || 'Unable to generate summary.';
+    return await geminiGenerate(prompt);
   } catch (error) {
     console.error('[Gemini Service] Error generating content:', error);
     return 'AI Summary could not be generated at this time.';
