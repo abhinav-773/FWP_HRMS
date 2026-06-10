@@ -4,7 +4,6 @@ services:
     name: hrms-postgres
     env: postgres
     plan: free
-    postgresMajorVersion: 15
     
   # Redis Cache for caching and socket pub/sub
   - type: redis
