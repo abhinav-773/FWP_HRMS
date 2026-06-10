@@ -1,15 +1,15 @@
-services:
+databases:
   # Primary SQL Database
-  - type: pserv
-    name: hrms-postgres
-    env: postgres
+  - name: hrms-postgres
     plan: free
-    
+
+services:
   # Redis Cache for caching and socket pub/sub
   - type: redis
     name: hrms-redis
     plan: free
-
+    ipAllowList: []
+    
   # Node.js Backend API
   - type: web
     name: hrms-backend
