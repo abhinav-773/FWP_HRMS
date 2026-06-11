@@ -21,8 +21,8 @@ async function seedDatabase() {
   console.log(chalk.cyan.bold('\n🚀 HireMind Demo Data Seeding Script\n'));
 
   // Safeguards
-  if (env.NODE_ENV === 'production') {
-    console.error(chalk.red('❌ ERROR: Cannot run demo seeding in production environment!'));
+  if (env.NODE_ENV === 'production' && !args.includes('--force-production')) {
+    console.error(chalk.red('❌ ERROR: Cannot run demo seeding in production environment without --force-production!'));
     process.exit(1);
   }
 

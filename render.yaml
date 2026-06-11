@@ -16,7 +16,7 @@ services:
     plan: free
     env: node
     rootDir: backend
-    buildCommand: "npm install && npm install tsx && npx prisma generate"
+    buildCommand: "npm install && npm install tsx && npx prisma generate && npx prisma db push --accept-data-loss"
     startCommand: "npx tsx src/index.ts"
     envVars:
       - key: DATABASE_URL
