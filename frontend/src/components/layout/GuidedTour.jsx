@@ -1,8 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import * as JoyrideModule from 'react-joyride';
-const Joyride = JoyrideModule.default || JoyrideModule.Joyride || JoyrideModule;
-const STATUS = JoyrideModule.STATUS;
-
+import { Joyride, STATUS } from 'react-joyride';
 export const TourTypes = {
   RECRUITER: 'RECRUITER',
   ADMIN: 'ADMIN',
