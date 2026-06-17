@@ -29,6 +29,10 @@ model User {
   tempPassword  Boolean        @default(false)
   role          Role           @default(EMPLOYEE)
   status        UserStatus     @default(ACTIVE)
+  // Account Lock Security
+  failedLoginAttempts Int            @default(0)
+  lockedUntil         DateTime?
+
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   
@@ -257,7 +261,9 @@ model Document {
   
   name               String
   documentType       DocumentType               @default(OTHER)
-  fileUrl            String           // Local path or S3 URL
+  fileUrl            String           // Local path or Cloud URL
+  fileProvider       String?          @default("LOCAL")
+  publicId           String?
   verificationStatus DocumentVerificationStatus @default(PENDING)
   
   createdAt       DateTime         @default(now())
@@ -331,6 +337,8 @@ model Candidate {
   phone           String?
   location        String?
   resumeUrl       String?
+  resumeProvider  String?         @default("LOCAL")
+  resumePublicId  String?
   linkedinUrl     String?
   skills          String[]
   source          CandidateSource @default(DIRECT)

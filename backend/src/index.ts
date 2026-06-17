@@ -14,9 +14,8 @@ import redisClient from './config/redis';
 import { globalLimiter, authLimiter } from './middlewares/rateLimiter';
 import { globalErrorHandler } from './middlewares/globalErrorHandler';
 import prisma from './config/prisma'; 
-
+import { xssSanitize } from './middlewares/security.middleware';
 import authRoutes from './routes/auth.routes';
-import customAuthRoutes from './routes/auth.routes'; // Alias for new routes
 import employeeRoutes from './routes/employee.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import leaveRoutes from './routes/leave.routes';
@@ -29,6 +28,7 @@ import applicationRoutes from './routes/application.routes';
 import interviewRoutes from './routes/interview.routes';
 import atsAnalyticsRoutes from './routes/ats-analytics.routes';
 import chatRoutes from './routes/chat.routes';
+import systemRoutes from './routes/system.routes';
 import searchRoutes from './routes/search.routes';
 import copilotRoutes from './routes/copilot.routes';
 import teamChatRoutes from './routes/team-chat.routes';
@@ -83,6 +83,7 @@ app.use(cors({
 app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true, limit: '1mb' }));
 app.use(cookieParser());
+app.use(xssSanitize);
 
 // Apply Global Rate Limiting
 app.use('/api/', globalLimiter);
@@ -102,7 +103,7 @@ setupSocketService(io);
 // Routes
 app.use('/api/v1/public', publicRoutes);
 app.use('/api/v1/auth', authLimiter, authRoutes); // Stricter limits for auth
-app.use('/api/v1/custom-auth', authLimiter, customAuthRoutes); // New Custom Auth
+app.use('/api/v1/custom-auth', authLimiter, authRoutes); // Same routes, dual mount for compatibility
 app.use('/api/v1/employees', employeeRoutes);
 app.use('/api/v1/attendance', attendanceRoutes);
 app.use('/api/v1/leaves', leaveRoutes);
@@ -125,6 +126,7 @@ app.use('/api/v1/performance', performanceRoutes);
 app.use('/api/v1/workflows', workflowRoutes);
 app.use('/api/v1/manager', managerRoutes);
 app.use('/api/v1/tasks', taskRoutes);
+app.use('/api/v1/system', systemRoutes);
 
 // Serve uploaded files statically
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));

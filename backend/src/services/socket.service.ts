@@ -22,7 +22,7 @@ export const setupSocketService = (io: Server) => {
     }
 
     try {
-      const decoded = jwt.verify(token as string, env.JWT_SECRET || 'fallback-secret-key-123') as jwt.JwtPayload;
+      const decoded = jwt.verify(token as string, env.JWT_SECRET) as jwt.JwtPayload;
       
       (socket as any).user = {
         userId: decoded.sub,

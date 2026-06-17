@@ -145,6 +145,21 @@ export declare class AtsAnalyticsService {
             note: string | null;
             performedById: string;
         })[];
+        aiInsights: {
+            bestPerformingSources: {
+                name: import(".prisma/client").$Enums.CandidateSource;
+                value: number;
+            }[];
+            topSkills: {
+                name: string;
+                value: number;
+            }[];
+            hiringTrends: {
+                month: string;
+                applications: number;
+            }[];
+            missingSkills: never[];
+        };
     }>;
 }
 declare const _default: AtsAnalyticsService;

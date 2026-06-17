@@ -5,6 +5,7 @@ import screeningQueueService from '../services/screeningQueue.service';
 import { logger } from '../config/logger';
 import emailService from '../services/email.service';
 import { eventBus } from '../services/eventBus';
+import { StorageFactory } from '../services/storage/StorageFactory';
 
 const router = express.Router();
 
@@ -102,8 +103,12 @@ router.post('/apply', upload.single('resume'), async (req, res) => {
       return res.status(400).json({ error: 'This job posting is no longer active.' });
     }
 
-    // Relative resume URL path to store in candidate entry
-    const resumeUrl = `/uploads/${req.file.filename}`;
+    // Upload resume via StorageFactory
+    const storageProvider = StorageFactory.getProvider();
+    const uploadResult = await storageProvider.upload(req.file.buffer, req.file.originalname, 'resumes');
+    const resumeUrl = uploadResult.url;
+    const resumeProvider = uploadResult.provider;
+    const resumePublicId = uploadResult.publicId;
 
     // Create or update Candidate record
     let candidate = await prisma.candidate.findUnique({
@@ -118,6 +123,8 @@ router.post('/apply', upload.single('resume'), async (req, res) => {
           phone: phone || null,
           location: location || null,
           resumeUrl,
+          resumeProvider,
+          resumePublicId,
           source: 'DIRECT'
         }
       });
@@ -128,7 +135,9 @@ router.post('/apply', upload.single('resume'), async (req, res) => {
           fullName,
           phone: phone || candidate.phone,
           location: location || candidate.location,
-          resumeUrl
+          resumeUrl,
+          resumeProvider,
+          resumePublicId
         }
       });
     }

@@ -2,13 +2,15 @@ import prisma from '../config/prisma';
 import { DocumentType } from '@prisma/client';
 
 export class DocumentService {
-  async saveDocument(userId: string, name: string, documentType: DocumentType, fileUrl: string) {
+  async saveDocument(userId: string, name: string, documentType: DocumentType, fileUrl: string, fileProvider: string = 'LOCAL', publicId?: string) {
     return await prisma.document.create({
       data: {
         userId,
         name,
         documentType,
-        fileUrl
+        fileUrl,
+        fileProvider,
+        publicId
       }
     });
   }

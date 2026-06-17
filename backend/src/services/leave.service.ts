@@ -73,7 +73,10 @@ export class LeaveService {
     const managerProfile = await prisma.employeeProfile.findUnique({ where: { userId } });
     if (!managerProfile) throw new Error('Manager profile not found');
 
-    const leave = await prisma.leaveRequest.findUnique({ where: { id: leaveId } });
+    const leave = await prisma.leaveRequest.findUnique({ 
+      where: { id: leaveId },
+      include: { employee: true }
+    });
     if (!leave) throw new Error('Leave request not found');
 
     if (leave.managerId !== managerProfile.id) {
@@ -83,6 +86,27 @@ export class LeaveService {
     const updatedLeave = await prisma.leaveRequest.update({
       where: { id: leaveId },
       data: { status }
+    });
+
+    // Create Audit Log
+    await prisma.auditLog.create({
+      data: {
+        action: `LEAVE_${status}`,
+        entityType: 'LeaveRequest',
+        entityId: leaveId,
+        actorId: userId,
+        details: { status }
+      }
+    });
+
+    // Create Notification for the employee
+    await prisma.notification.create({
+      data: {
+        userId: leave.employee.userId,
+        title: `Leave Request ${status}`,
+        message: `Your ${leave.type} leave request from ${leave.startDate.toISOString().split('T')[0]} to ${leave.endDate.toISOString().split('T')[0]} has been ${status.toLowerCase()}.`,
+        type: 'LEAVE',
+      }
     });
 
     if (status === 'APPROVED') {

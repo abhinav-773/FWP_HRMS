@@ -1,10 +1,10 @@
 export declare const calculateProductivity: (department: string) => Promise<{
     id: string;
     department: string;
+    completedTasks: number;
     averageAttendance: number;
     averageProductivity: number;
     overdueTasks: number;
-    completedTasks: number;
     burnoutRiskScore: number;
     generatedAt: Date;
 }>;

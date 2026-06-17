@@ -25,6 +25,27 @@ export class TaskService {
       }
     });
 
+    // Create Audit Log
+    await prisma.auditLog.create({
+      data: {
+        action: 'TASK_ASSIGNED',
+        entityType: 'TeamTask',
+        entityId: task.id,
+        actorId: managerUserId,
+        details: { priority: task.priority, dueDate: task.dueDate }
+      }
+    });
+
+    // Create Notification
+    await prisma.notification.create({
+      data: {
+        userId: task.assignedTo.userId,
+        title: 'New Task Assigned',
+        message: `You have been assigned a new task: ${task.title}. Priority: ${task.priority}.`,
+        type: 'SYSTEM'
+      }
+    });
+
     // Real-time Event
     eventBus.emit('task:assigned', {
       employeeId: task.assignedTo.userId,
@@ -51,8 +72,28 @@ export class TaskService {
       }
     });
 
+    // Create Audit Log
+    await prisma.auditLog.create({
+      data: {
+        action: 'TASK_UPDATED',
+        entityType: 'TeamTask',
+        entityId: task.id,
+        actorId: userId,
+        details: { status: task.status, progress: task.progress }
+      }
+    });
+
     // If completed or updated, notify manager
     if (status === 'COMPLETED' || progress === 100) {
+      await prisma.notification.create({
+        data: {
+          userId: task.assignedBy.userId,
+          title: 'Task Completed',
+          message: `Employee updated task progress to 100%: ${task.title}.`,
+          type: 'SYSTEM'
+        }
+      });
+
       eventBus.emit('task:completed', {
         managerId: task.assignedBy.userId,
         task

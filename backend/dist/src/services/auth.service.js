@@ -2,8 +2,8 @@ import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
 import prisma from '../config/prisma';
 export class AuthService {
-    ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-123';
-    REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-456';
+    ACCESS_TOKEN_SECRET = process.env.JWT_SECRET;
+    REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET;
     ACCESS_TOKEN_EXPIRY = '15m';
     REFRESH_TOKEN_EXPIRY = '7d';
     // Generate tokens for a user

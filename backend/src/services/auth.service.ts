@@ -6,8 +6,8 @@ import { User, Role } from '@prisma/client';
 import { env } from '../config/env';
 
 export class AuthService {
-  private readonly ACCESS_TOKEN_SECRET = process.env.JWT_SECRET || 'fallback-secret-key-123';
-  private readonly REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET || 'fallback-refresh-secret-456';
+  private readonly ACCESS_TOKEN_SECRET = process.env.JWT_SECRET!;
+  private readonly REFRESH_TOKEN_SECRET = process.env.JWT_REFRESH_SECRET!;
   private readonly ACCESS_TOKEN_EXPIRY = '15m';
   private readonly REFRESH_TOKEN_EXPIRY = '7d';
 

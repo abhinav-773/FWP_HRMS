@@ -1,0 +1,1 @@
+{"version":3,"file":"StorageFactory.d.ts","sourceRoot":"","sources":["../../../../src/services/storage/StorageFactory.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,mBAAmB,EAAE,MAAM,uBAAuB,CAAC;AAI5D,qBAAa,cAAc;IACzB,OAAO,CAAC,MAAM,CAAC,QAAQ,CAAsB;IAE7C,MAAM,CAAC,WAAW,IAAI,mBAAmB;CAc1C"}

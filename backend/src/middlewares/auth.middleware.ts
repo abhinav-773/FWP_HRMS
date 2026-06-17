@@ -5,7 +5,7 @@ import { env } from '../config/env';
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   // 1. Check for internal service-to-service key first (AI service bypass)
   const serviceKey = req.headers['x-service-key'];
-  if (serviceKey === (process.env.SERVICE_KEY || 'internal_hrgpt_service_key_2026')) {
+  if (process.env.SERVICE_KEY && serviceKey === process.env.SERVICE_KEY) {
     const userId = req.headers['x-user-id'] as string;
     const role = req.headers['x-user-role'] as string;
     if (userId) {
@@ -27,7 +27,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       return res.status(401).json({ error: 'Unauthorized: Token is empty' });
     }
 
-    const decoded = jwt.verify(token, (env.JWT_SECRET as string) || 'fallback-secret-key-123') as jwt.JwtPayload;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as jwt.JwtPayload;
     (req as any).user = { 
       sub: decoded.sub, 
       userId: decoded.sub, 

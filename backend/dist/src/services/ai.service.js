@@ -1,12 +1,14 @@
-import axios from 'axios';
-import FormData from 'form-data';
-import fs from 'fs';
+import prisma from '../config/prisma';
+import { scoreResume } from './ai/resumeScoring.service';
+import * as fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import prisma from '../config/prisma';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL || 'http://localhost:8000/api/v1';
+/**
+ * AI Integration Service — evaluates candidate applications using Gemini AI.
+ * Replaces the old Python microservice proxy.
+ */
 export class AiIntegrationService {
     async evaluateApplication(applicationId, resumeUrl, jobDescription) {
         try {
@@ -17,18 +19,19 @@ export class AiIntegrationService {
                 console.warn(`[AI Service] Resume file not found: ${filePath}`);
                 return;
             }
-            // 2. Prepare Form Data
-            const formData = new FormData();
-            formData.append('resume', fs.createReadStream(filePath));
-            formData.append('job_description', jobDescription);
-            // 3. Call AI Microservice
-            console.log(`[AI Service] Sending application ${applicationId} for evaluation...`);
-            const response = await axios.post(`${AI_SERVICE_URL}/resume/evaluate`, formData, {
-                headers: {
-                    ...formData.getHeaders()
-                }
-            });
-            const { score, insights } = response.data;
+            // 2. Read resume text
+            const dataBuffer = fs.readFileSync(filePath);
+            let resumeText = '';
+            try {
+                // Try basic text extraction for scoring
+                resumeText = dataBuffer.toString('utf-8').substring(0, 3000);
+            }
+            catch (_) {
+                resumeText = 'Unable to extract text from resume';
+            }
+            // 3. Score using Gemini AI (replaces Python microservice call)
+            console.log(`[AI Service] Evaluating application ${applicationId} via Gemini...`);
+            const { score, insights } = await scoreResume(applicationId, resumeText, jobDescription);
             // 4. Update Database
             await prisma.application.update({
                 where: { id: applicationId },

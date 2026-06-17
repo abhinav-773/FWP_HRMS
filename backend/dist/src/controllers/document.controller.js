@@ -1,4 +1,5 @@
 import documentService from '../services/document.service';
+import { StorageFactory } from '../services/storage/StorageFactory';
 export const uploadDocument = async (req, res) => {
     try {
         if (!req.file) {
@@ -6,10 +7,9 @@ export const uploadDocument = async (req, res) => {
         }
         const userId = req.user.userId;
         const { name, documentType } = req.body;
-        // Convert absolute path to a relative URL for frontend consumption
-        // Assuming backend runs on port 3000 and serves /uploads statically
-        const fileUrl = `/uploads/${req.file.filename}`;
-        const doc = await documentService.saveDocument(userId, name, documentType, fileUrl);
+        const storageProvider = StorageFactory.getProvider();
+        const uploadResult = await storageProvider.upload(req.file.buffer, req.file.originalname, 'documents');
+        const doc = await documentService.saveDocument(userId, name, documentType, uploadResult.url, uploadResult.provider, uploadResult.publicId);
         res.status(201).json({ data: doc, message: 'Document uploaded successfully' });
     }
     catch (error) {

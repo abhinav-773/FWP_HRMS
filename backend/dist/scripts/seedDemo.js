@@ -16,11 +16,11 @@ async function prompt(query) {
 async function seedDatabase() {
     console.log(chalk.cyan.bold('\n🚀 HireMind Demo Data Seeding Script\n'));
     // Safeguards
-    if (env.NODE_ENV === 'production') {
-        console.error(chalk.red('❌ ERROR: Cannot run demo seeding in production environment!'));
+    const args = process.argv.slice(2);
+    if (env.NODE_ENV === 'production' && !args.includes('--force-production')) {
+        console.error(chalk.red('❌ ERROR: Cannot run demo seeding in production environment without --force-production!'));
         process.exit(1);
     }
-    const args = process.argv.slice(2);
     if (!args.includes('--force-demo')) {
         console.error(chalk.yellow('⚠️ WARNING: You must pass --force-demo flag to run this script.'));
         console.error(chalk.yellow('Example: npm run seed:demo -- --force-demo\n'));

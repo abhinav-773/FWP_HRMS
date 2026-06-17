@@ -92,6 +92,8 @@ export declare class JobService {
                 location: string | null;
                 skills: string[];
                 resumeUrl: string | null;
+                resumeProvider: string | null;
+                resumePublicId: string | null;
                 linkedinUrl: string | null;
                 source: import(".prisma/client").$Enums.CandidateSource;
                 experience: number;

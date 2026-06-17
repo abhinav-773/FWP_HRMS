@@ -98,3 +98,50 @@
 [2026-06-07T12:57:52.456Z] AI Evaluated Candidate: Abhinav. Score: 56%. Promoting stage to: REJECTED.
 [2026-06-07T12:57:59.439Z] Fired real-time websocket sync for job: ce3a1671-6de7-4eae-a0fb-cc50b2431bf2
 [2026-06-07T12:57:59.440Z] Successfully completed processing for application ID: ad015e98-9bd0-4b11-a1c2-3c64000e7ff6
+[2026-06-17T07:10:31.227Z] Queueing application: 4df449d0-0429-4c15-bd11-eb5a15a56942
+[2026-06-17T07:10:31.229Z] Starting processing for application ID: 4df449d0-0429-4c15-bd11-eb5a15a56942
+[2026-06-17T07:10:31.244Z] ERROR for 4df449d0-0429-4c15-bd11-eb5a15a56942: Resume file not found at path: D:\Abhi_HRMS\backend\uploads\undefined
+[2026-06-17T07:10:31.244Z] Re-queueing 4df449d0-0429-4c15-bd11-eb5a15a56942 (Attempt 2/4)
+[2026-06-17T07:10:31.749Z] Starting processing for application ID: 4df449d0-0429-4c15-bd11-eb5a15a56942
+[2026-06-17T07:10:31.755Z] ERROR for 4df449d0-0429-4c15-bd11-eb5a15a56942: Resume file not found at path: D:\Abhi_HRMS\backend\uploads\undefined
+[2026-06-17T07:10:31.755Z] Re-queueing 4df449d0-0429-4c15-bd11-eb5a15a56942 (Attempt 3/4)
+[2026-06-17T07:10:32.256Z] Starting processing for application ID: 4df449d0-0429-4c15-bd11-eb5a15a56942
+[2026-06-17T07:10:32.262Z] ERROR for 4df449d0-0429-4c15-bd11-eb5a15a56942: Resume file not found at path: D:\Abhi_HRMS\backend\uploads\undefined
+[2026-06-17T07:10:32.262Z] Re-queueing 4df449d0-0429-4c15-bd11-eb5a15a56942 (Attempt 4/4)
+[2026-06-17T07:10:32.763Z] Starting processing for application ID: 4df449d0-0429-4c15-bd11-eb5a15a56942
+[2026-06-17T07:10:32.768Z] ERROR for 4df449d0-0429-4c15-bd11-eb5a15a56942: Resume file not found at path: D:\Abhi_HRMS\backend\uploads\undefined
+[2026-06-17T07:10:32.769Z] Max retries reached. Marking application 4df449d0-0429-4c15-bd11-eb5a15a56942 as failed.
+[2026-06-17T07:12:02.958Z] Queueing application: 03417b3a-c228-4ade-b160-89a57bab53d9
+[2026-06-17T07:12:02.959Z] Starting processing for application ID: 03417b3a-c228-4ade-b160-89a57bab53d9
+[2026-06-17T07:12:02.975Z] Extracting text from resume file for candidate: EndToEnd TestCandidate
+[2026-06-17T07:12:04.403Z] ERROR for 03417b3a-c228-4ade-b160-89a57bab53d9: Failed to extract text from file: Invalid PDF structure
+[2026-06-17T07:12:04.403Z] Re-queueing 03417b3a-c228-4ade-b160-89a57bab53d9 (Attempt 2/4)
+[2026-06-17T07:12:04.909Z] Starting processing for application ID: 03417b3a-c228-4ade-b160-89a57bab53d9
+[2026-06-17T07:12:04.915Z] Extracting text from resume file for candidate: EndToEnd TestCandidate
+[2026-06-17T07:12:04.918Z] ERROR for 03417b3a-c228-4ade-b160-89a57bab53d9: Failed to extract text from file: Invalid PDF structure
+[2026-06-17T07:12:04.919Z] Re-queueing 03417b3a-c228-4ade-b160-89a57bab53d9 (Attempt 3/4)
+[2026-06-17T07:12:05.420Z] Starting processing for application ID: 03417b3a-c228-4ade-b160-89a57bab53d9
+[2026-06-17T07:12:05.425Z] Extracting text from resume file for candidate: EndToEnd TestCandidate
+[2026-06-17T07:12:05.428Z] ERROR for 03417b3a-c228-4ade-b160-89a57bab53d9: Failed to extract text from file: Invalid PDF structure
+[2026-06-17T07:12:05.428Z] Re-queueing 03417b3a-c228-4ade-b160-89a57bab53d9 (Attempt 4/4)
+[2026-06-17T07:12:05.929Z] Starting processing for application ID: 03417b3a-c228-4ade-b160-89a57bab53d9
+[2026-06-17T07:12:05.934Z] Extracting text from resume file for candidate: EndToEnd TestCandidate
+[2026-06-17T07:12:05.937Z] ERROR for 03417b3a-c228-4ade-b160-89a57bab53d9: Failed to extract text from file: Invalid PDF structure
+[2026-06-17T07:12:05.937Z] Max retries reached. Marking application 03417b3a-c228-4ade-b160-89a57bab53d9 as failed.
+[2026-06-17T07:14:36.992Z] Queueing application: 231d3a32-af70-4571-ba14-da3b4fb0dc89
+[2026-06-17T07:14:36.993Z] Starting processing for application ID: 231d3a32-af70-4571-ba14-da3b4fb0dc89
+[2026-06-17T07:14:37.001Z] Extracting text from resume file for candidate: EndToEnd ValidPDF TestCandidate
+[2026-06-17T07:14:37.006Z] ERROR for 231d3a32-af70-4571-ba14-da3b4fb0dc89: Failed to extract text from file: Command token too long: 128
+[2026-06-17T07:14:37.007Z] Re-queueing 231d3a32-af70-4571-ba14-da3b4fb0dc89 (Attempt 2/4)
+[2026-06-17T07:14:37.508Z] Starting processing for application ID: 231d3a32-af70-4571-ba14-da3b4fb0dc89
+[2026-06-17T07:14:37.513Z] Extracting text from resume file for candidate: EndToEnd ValidPDF TestCandidate
+[2026-06-17T07:14:37.518Z] ERROR for 231d3a32-af70-4571-ba14-da3b4fb0dc89: Failed to extract text from file: Command token too long: 128
+[2026-06-17T07:14:37.518Z] Re-queueing 231d3a32-af70-4571-ba14-da3b4fb0dc89 (Attempt 3/4)
+[2026-06-17T07:14:38.030Z] Starting processing for application ID: 231d3a32-af70-4571-ba14-da3b4fb0dc89
+[2026-06-17T07:14:38.035Z] Extracting text from resume file for candidate: EndToEnd ValidPDF TestCandidate
+[2026-06-17T07:14:38.038Z] ERROR for 231d3a32-af70-4571-ba14-da3b4fb0dc89: Failed to extract text from file: Illegal character: 41
+[2026-06-17T07:14:38.039Z] Re-queueing 231d3a32-af70-4571-ba14-da3b4fb0dc89 (Attempt 4/4)
+[2026-06-17T07:14:38.550Z] Starting processing for application ID: 231d3a32-af70-4571-ba14-da3b4fb0dc89
+[2026-06-17T07:14:38.554Z] Extracting text from resume file for candidate: EndToEnd ValidPDF TestCandidate
+[2026-06-17T07:14:38.557Z] ERROR for 231d3a32-af70-4571-ba14-da3b4fb0dc89: Failed to extract text from file: Illegal character: 41
+[2026-06-17T07:14:38.557Z] Max retries reached. Marking application 231d3a32-af70-4571-ba14-da3b4fb0dc89 as failed.

@@ -40,6 +40,7 @@ export declare class PerformanceService {
         updatedAt: Date;
         aiSummary: string | null;
         managerRemarks: string | null;
+        reviewerId: string;
         reviewPeriod: string;
         technicalRating: number;
         communicationRating: number;
@@ -48,7 +49,6 @@ export declare class PerformanceService {
         overallRating: number;
         strengths: string[];
         weaknesses: string[];
-        reviewerId: string;
     }>;
     getEmployeeReviews(employeeId: string): Promise<({
         reviewer: {
@@ -78,6 +78,7 @@ export declare class PerformanceService {
         updatedAt: Date;
         aiSummary: string | null;
         managerRemarks: string | null;
+        reviewerId: string;
         reviewPeriod: string;
         technicalRating: number;
         communicationRating: number;
@@ -86,7 +87,6 @@ export declare class PerformanceService {
         overallRating: number;
         strengths: string[];
         weaknesses: string[];
-        reviewerId: string;
     })[]>;
     requestFeedback(employeeId: string, peerId: string, reviewPeriod: string, feedbackText: string, rating?: number): Promise<{
         id: string;

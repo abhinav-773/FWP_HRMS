@@ -2,10 +2,16 @@ import axios from 'axios';
 import { store } from '../store';
 import { logoutUser, setCredentials } from '../store/slices/authSlice';
 
+// Use environment variable for API base URL, fallback to localhost for dev
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
+
 const axiosClient = axios.create({
-  baseURL: 'http://localhost:5000/api/v1',
+  baseURL: API_BASE_URL,
   withCredentials: true,
 });
+
+// Track refresh state to prevent concurrent refresh attempts
+let isRefreshing = false;
 
 // Inject token into request headers
 axiosClient.interceptors.request.use(
@@ -43,7 +49,7 @@ axiosClient.interceptors.response.use(
 
       try {
         // Attempt to refresh the token using HttpOnly cookie
-        const { data } = await axios.post('http://localhost:5000/api/v1/custom-auth/refresh', {}, { withCredentials: true });
+        const { data } = await axios.post(`${API_BASE_URL}/custom-auth/refresh`, {}, { withCredentials: true });
         
         const newAccessToken = data.accessToken;
         

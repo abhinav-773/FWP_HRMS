@@ -1,1 +1,1 @@
-{"version":3,"file":"bulkUpload.controller.d.ts","sourceRoot":"","sources":["../../../src/controllers/bulkUpload.controller.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAU5C,eAAO,MAAM,iBAAiB,GAAU,KAAK,OAAO,EAAE,KAAK,QAAQ,4DA2ClE,CAAC"}
+{"version":3,"file":"bulkUpload.controller.d.ts","sourceRoot":"","sources":["../../../src/controllers/bulkUpload.controller.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,OAAO,EAAE,QAAQ,EAAE,MAAM,SAAS,CAAC;AAS5C,eAAO,MAAM,iBAAiB,GAAU,KAAK,OAAO,EAAE,KAAK,QAAQ,4DAqClE,CAAC"}

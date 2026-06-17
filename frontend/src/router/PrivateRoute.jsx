@@ -56,10 +56,10 @@ const PrivateRoute = ({ allowedRoles = [] }) => {
   // Role-based access check
   if (allowedRoles.length > 0 && !allowedRoles.includes(user.role)) {
     // Redirect user to their own portal based on their actual role
-    if (user.role === 'SUPER_ADMIN') return <Navigate to="/admin/dashboard" replace />;
+    if (user.role === 'SUPER_ADMIN') return <Navigate to="/admin/executive" replace />;
     if (user.role === 'HR_RECRUITER') return <Navigate to="/dashboard" replace />;
     if (user.role === 'SENIOR_MANAGER') return <Navigate to="/manager/dashboard" replace />;
-    if (user.role === 'EMPLOYEE') return <Navigate to="/employee/dashboard" replace />;
+    if (user.role === 'EMPLOYEE') return <Navigate to="/dashboard" replace />;
     
     // Fallback redirect
     return <Navigate to="/login" replace />;

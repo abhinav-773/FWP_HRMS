@@ -58,6 +58,8 @@ export declare class AuthService {
             tempPassword: boolean;
             role: import(".prisma/client").$Enums.Role;
             status: import(".prisma/client").$Enums.UserStatus;
+            failedLoginAttempts: number;
+            lockedUntil: Date | null;
         };
     }>;
     logout(token: string): Promise<void>;

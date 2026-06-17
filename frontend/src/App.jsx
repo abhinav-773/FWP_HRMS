@@ -34,6 +34,7 @@ import AIInterviewSession from './features/ats/pages/AIInterviewSession';
 
 // Lazy load heavy dashboard modules
 const ATSDashboard = lazy(() => import('./features/ats/pages/ATSDashboard'));
+const ATSAnalyticsDashboard = lazy(() => import('./features/ats/pages/ATSAnalyticsDashboard'));
 const RecruiterInterviewDashboard = lazy(() => import('./features/interviews/pages/RecruiterInterviewDashboard'));
 const OnboardingPortal = lazy(() => import('./features/onboarding/pages/OnboardingPortal'));
 
@@ -109,6 +110,7 @@ function App() {
               {/* HR Recruiter + Admin */}
               <Route element={<PrivateRoute allowedRoles={['HR_RECRUITER', 'SUPER_ADMIN']} />}>
                 <Route path="/hr/ats" element={<ATSDashboard />} />
+                <Route path="/hr/ats/analytics" element={<ATSAnalyticsDashboard />} />
                 <Route path="/hr/jobs" element={<JobListings />} />
                 <Route path="/hr/pipeline" element={<PipelineBoard />} />
                 <Route path="/hr/candidates" element={<CandidateDirectory />} />

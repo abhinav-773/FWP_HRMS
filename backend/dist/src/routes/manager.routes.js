@@ -1,8 +1,8 @@
 import { Router } from 'express';
-import { requireRole } from '../middlewares/role.middleware';
+import { requireAnyRole } from '../middlewares/role.middleware';
 import { getTeamDashboard, createTeamTask, getTeamTasks, getLeaveApprovals, approveLeave, submitPerformanceReview, getTeamAnalytics, getTeamMembers } from '../controllers/manager.controller';
 const router = Router();
-router.use(requireRole('SENIOR_MANAGER'));
+router.use(requireAnyRole(['SENIOR_MANAGER', 'SUPER_ADMIN']));
 router.get('/dashboard', getTeamDashboard);
 router.get('/tasks', getTeamTasks);
 router.post('/tasks', createTeamTask);

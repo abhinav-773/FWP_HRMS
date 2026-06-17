@@ -1,6 +1,5 @@
 import prisma from '../config/prisma';
 import { ResumeParserService } from './resumeParser.service';
-import { VectorDbService } from './vectorDb.service';
 import { AiRankingService } from './aiRanking.service';
 import { eventBus } from './eventBus';
 import emailService from './email.service';
@@ -132,17 +131,8 @@ export class ScreeningQueueService {
                 notes: structuredData.projects || candidate.notes || null
             }
         });
-        // 4. Add candidate embedding to VectorDB
-        this.writeAuditLog(`Upserting candidate resume vector embedding into ChromaDB...`);
-        try {
-            await VectorDbService.addCandidateEmbedding(candidate.id, rawText, {
-                fullName: candidate.fullName,
-                email: candidate.email
-            });
-        }
-        catch (vectorErr) {
-            console.warn(`[Screening Queue] ChromaDB embed failed: ${vectorErr.message}. Fallback calculations will be active.`);
-        }
+        // 4. VectorDB embedding step removed — AI scoring is now cloud-based via Gemini
+        this.writeAuditLog(`Skipping local embedding — using cloud AI scoring...`);
         // 5. Run Match & Scores via AiRankingService
         this.writeAuditLog(`Evaluating matching scores against job posting...`);
         const jobText = `${job.title} ${job.description || ''} ${job.requirements || ''} ${job.skills ? job.skills.join(', ') : ''}`;

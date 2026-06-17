@@ -14,17 +14,25 @@ const __dirname = path.dirname(__filename);
 export class AiIntegrationService {
   async evaluateApplication(applicationId: string, resumeUrl: string, jobDescription: string) {
     try {
-      // 1. Resolve local path of the resume
-      const filename = path.basename(resumeUrl);
-      const filePath = path.join(__dirname, '../../uploads', filename);
+      let dataBuffer: Buffer;
 
-      if (!fs.existsSync(filePath)) {
-        console.warn(`[AI Service] Resume file not found: ${filePath}`);
-        return;
+      // 1. Fetch resume buffer (support both Cloudinary HTTP URLs and Local files)
+      if (resumeUrl.startsWith('http://') || resumeUrl.startsWith('https://')) {
+        const axios = (await import('axios')).default;
+        const response = await axios.get(resumeUrl, { responseType: 'arraybuffer' });
+        dataBuffer = Buffer.from(response.data, 'binary');
+      } else {
+        const filename = path.basename(resumeUrl);
+        const filePath = path.join(__dirname, '../../uploads', filename);
+  
+        if (!fs.existsSync(filePath)) {
+          console.warn(`[AI Service] Resume file not found: ${filePath}`);
+          return;
+        }
+        dataBuffer = fs.readFileSync(filePath);
       }
 
       // 2. Read resume text
-      const dataBuffer = fs.readFileSync(filePath);
       let resumeText = '';
       try {
         // Try basic text extraction for scoring

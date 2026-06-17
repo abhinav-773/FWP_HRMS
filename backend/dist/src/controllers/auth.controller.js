@@ -8,7 +8,7 @@ const setRefreshCookie = (res, token) => {
     res.cookie('refreshToken', token, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
     });
 };
@@ -52,16 +52,36 @@ export const login = async (req, res) => {
         if (user.status !== 'ACTIVE' && user.status !== 'PENDING') {
             return res.status(403).json({ error: 'Account is inactive' });
         }
+        // Check Account Lock
+        if (user.lockedUntil && new Date() < user.lockedUntil) {
+            const waitMinutes = Math.ceil((user.lockedUntil.getTime() - new Date().getTime()) / 60000);
+            return res.status(403).json({ error: `Account locked due to multiple failed attempts. Please try again in ${waitMinutes} minutes.` });
+        }
         console.log('[Auth] Starting password comparison');
         // Verify Password
         const isMatch = await bcrypt.compare(password, user.password);
         console.log('[Auth] Password compare result:', isMatch);
         if (!isMatch) {
             console.log('[Auth] Password mismatch');
+            const newAttempts = user.failedLoginAttempts + 1;
+            const updates = { failedLoginAttempts: newAttempts };
+            if (newAttempts >= 5) {
+                // Lock for 15 minutes
+                const lockTime = new Date(Date.now() + 15 * 60 * 1000);
+                updates.lockedUntil = lockTime;
+            }
+            await prisma.user.update({ where: { id: user.id }, data: updates });
             await prisma.auditLog.create({
-                data: { action: 'LOGIN_FAILED', entityType: 'User', entityId: user.id, ipAddress: req.ip, details: { reason: 'Wrong password' } }
+                data: { action: 'LOGIN_FAILED', entityType: 'User', entityId: user.id, ipAddress: req.ip, details: { reason: 'Wrong password', attempts: newAttempts } }
             });
             return res.status(401).json({ error: 'Invalid credentials' });
+        }
+        // Password Match: Reset failed attempts
+        if (user.failedLoginAttempts > 0 || user.lockedUntil) {
+            await prisma.user.update({
+                where: { id: user.id },
+                data: { failedLoginAttempts: 0, lockedUntil: null }
+            });
         }
         console.log('[Auth] Generating JWTs...');
         // Ensure Employee Profile & HR Records Exist
@@ -153,6 +173,11 @@ export const changePassword = async (req, res) => {
         if (!userId)
             return res.status(401).json({ error: 'Unauthorized' });
         const { newPassword } = req.body;
+        // Strong Password Policy: Minimum 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special character
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+        if (!passwordRegex.test(newPassword)) {
+            return res.status(400).json({ error: 'Password must be at least 8 characters long, contain an uppercase letter, a lowercase letter, a number, and a special character.' });
+        }
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
         await prisma.user.update({

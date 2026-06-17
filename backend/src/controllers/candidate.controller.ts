@@ -1,12 +1,18 @@
 import type { Request, Response } from 'express';
 import candidateService from '../services/candidate.service';
 
+import { StorageFactory } from '../services/storage/StorageFactory';
+
 export const createCandidate = async (req: Request, res: Response) => {
   try {
-    // If a resume was uploaded, multer puts it in req.file
     const data = { ...req.body };
+    
     if (req.file) {
-      data.resumeUrl = `/uploads/${req.file.filename}`;
+      const storageProvider = StorageFactory.getProvider();
+      const uploadResult = await storageProvider.upload(req.file.buffer, req.file.originalname, 'resumes');
+      data.resumeUrl = uploadResult.url;
+      data.resumeProvider = uploadResult.provider;
+      data.resumePublicId = uploadResult.publicId;
     }
     
     // Skills might come as a comma-separated string if sent via FormData
@@ -49,7 +55,11 @@ export const updateCandidate = async (req: Request, res: Response) => {
     const id = req.params.id as string;
     const data = { ...req.body };
     if (req.file) {
-      data.resumeUrl = `/uploads/${req.file.filename}`;
+      const storageProvider = StorageFactory.getProvider();
+      const uploadResult = await storageProvider.upload(req.file.buffer, req.file.originalname, 'resumes');
+      data.resumeUrl = uploadResult.url;
+      data.resumeProvider = uploadResult.provider;
+      data.resumePublicId = uploadResult.publicId;
     }
     if (typeof data.skills === 'string') {
       data.skills = data.skills.split(',').map((s: string) => s.trim());

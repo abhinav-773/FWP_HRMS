@@ -1,6 +1,5 @@
-import { PrismaClient } from '@prisma/client';
+import prisma from '../config/prisma';
 import { generateAIResponse } from './gemini.service.js';
-const prisma = new PrismaClient();
 export const calculateProductivity = async (department) => {
     // Get all employees in the department
     const employees = await prisma.employeeProfile.findMany({

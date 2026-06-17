@@ -8,6 +8,7 @@ import prisma from '../config/prisma';
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
+import employeeBootstrapService from '../services/employeeBootstrap.service.js';
 
 export const applyForJob = async (req: Request, res: Response) => {
   try {
@@ -193,23 +194,8 @@ async function automateEmployeeCreation(candidate: any, job: any) {
       employeeId = profile.employeeId;
     }
 
-    // Create Onboarding Checklist
-    const checklist = await prisma.onboardingChecklist.create({
-      data: {
-        employeeId: profile.id,
-        title: 'Standard New Hire Onboarding',
-        description: 'Complete all necessary paperwork and IT setup.',
-        status: 'PENDING'
-      }
-    });
-
-    await prisma.onboardingTask.createMany({
-      data: [
-        { checklistId: checklist.id, title: 'Upload ID Proof', documentRequired: true, status: 'PENDING' },
-        { checklistId: checklist.id, title: 'Sign NDA', documentRequired: true, status: 'PENDING' },
-        { checklistId: checklist.id, title: 'Provide Bank Details', documentRequired: true, status: 'PENDING' }
-      ]
-    });
+    // Initialize Payroll, Performance, and Onboarding Checklist using Bootstrap Service
+    await employeeBootstrapService.initializeHRRecords(profile.id);
 
     // Send email with credentials
     await emailService.sendOnboardingCredentialsEmail(candidate.email, candidate.fullName, employeeId, tempPassword);

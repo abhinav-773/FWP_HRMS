@@ -1,6 +1,6 @@
 import { DocumentType } from '@prisma/client';
 export declare class DocumentService {
-    saveDocument(userId: string, name: string, documentType: DocumentType, fileUrl: string): Promise<{
+    saveDocument(userId: string, name: string, documentType: DocumentType, fileUrl: string, fileProvider?: string, publicId?: string): Promise<{
         id: string;
         userId: string;
         createdAt: Date;
@@ -8,6 +8,8 @@ export declare class DocumentService {
         name: string;
         documentType: import(".prisma/client").$Enums.DocumentType;
         fileUrl: string;
+        fileProvider: string | null;
+        publicId: string | null;
         verificationStatus: import(".prisma/client").$Enums.DocumentVerificationStatus;
     }>;
     getMyDocuments(userId: string, search?: string, type?: string): Promise<{
@@ -18,6 +20,8 @@ export declare class DocumentService {
         name: string;
         documentType: import(".prisma/client").$Enums.DocumentType;
         fileUrl: string;
+        fileProvider: string | null;
+        publicId: string | null;
         verificationStatus: import(".prisma/client").$Enums.DocumentVerificationStatus;
     }[]>;
     verifyDocument(documentId: string, status?: 'VERIFIED' | 'REJECTED' | 'PENDING'): Promise<{
@@ -28,6 +32,8 @@ export declare class DocumentService {
         name: string;
         documentType: import(".prisma/client").$Enums.DocumentType;
         fileUrl: string;
+        fileProvider: string | null;
+        publicId: string | null;
         verificationStatus: import(".prisma/client").$Enums.DocumentVerificationStatus;
     }>;
 }

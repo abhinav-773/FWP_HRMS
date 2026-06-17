@@ -17,7 +17,7 @@ export const setupSocketService = (io) => {
             return next(new Error('Authentication error: Missing token or meetingUrl'));
         }
         try {
-            const decoded = jwt.verify(token, env.JWT_SECRET || 'fallback-secret-key-123');
+            const decoded = jwt.verify(token, env.JWT_SECRET);
             socket.user = {
                 userId: decoded.sub,
                 role: decoded.role,

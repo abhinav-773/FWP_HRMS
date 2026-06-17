@@ -85,6 +85,50 @@ export class AtsAnalyticsService {
                 performedBy: { select: { fullName: true } }
             }
         });
+        // AI Insights - Best Performing Sources
+        const sources = await prisma.candidate.groupBy({
+            by: ['source'],
+            _count: true,
+            orderBy: { _count: { source: 'desc' } }
+        });
+        const bestPerformingSources = sources.map(s => ({
+            name: s.source,
+            value: s._count
+        }));
+        // AI Insights - Top Skills
+        // Note: In Postgres, aggregating array elements efficiently requires raw queries, 
+        // but for simplicity in MVP we fetch recent candidates and aggregate in memory.
+        const recentCandidates = await prisma.candidate.findMany({
+            select: { skills: true },
+            take: 1000,
+            orderBy: { createdAt: 'desc' }
+        });
+        const skillCounts = {};
+        recentCandidates.forEach(c => {
+            c.skills.forEach(skill => {
+                skillCounts[skill] = (skillCounts[skill] || 0) + 1;
+            });
+        });
+        const topSkills = Object.entries(skillCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 10)
+            .map(([name, value]) => ({ name, value }));
+        // Hiring Trends (Last 6 Months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const appsOverTime = await prisma.application.findMany({
+            where: { createdAt: { gte: sixMonthsAgo } },
+            select: { createdAt: true }
+        });
+        const trendsMap = {};
+        appsOverTime.forEach(app => {
+            const month = app.createdAt.toLocaleString('default', { month: 'short' });
+            trendsMap[month] = (trendsMap[month] || 0) + 1;
+        });
+        const hiringTrends = Object.entries(trendsMap).map(([month, count]) => ({
+            month,
+            applications: count
+        }));
         return {
             activeJobs,
             totalCandidates,
@@ -92,7 +136,13 @@ export class AtsAnalyticsService {
             upcomingInterviews,
             leaderboard,
             scoreDistribution,
-            activityFeed
+            activityFeed,
+            aiInsights: {
+                bestPerformingSources,
+                topSkills,
+                hiringTrends,
+                missingSkills: [] // In a full implementation, compare Candidate Skills vs Job Requirements
+            }
         };
     }
 }
