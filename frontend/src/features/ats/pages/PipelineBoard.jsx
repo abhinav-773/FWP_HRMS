@@ -321,7 +321,7 @@ const PipelineBoard = () => {
                                   {app.candidate?.resumeUrl && (
                                     <div className="flex items-center text-xs text-indigo-400 mt-2">
                                       <FileText className="h-3.5 w-3.5 mr-1.5" />
-                                      <a href={`http://localhost:5000${app.candidate.resumeUrl}`} target="_blank" rel="noreferrer" className="hover:underline">View PDF Resume</a>
+                                      <a href={app.candidate.resumeUrl?.startsWith('http') ? app.candidate.resumeUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:5000'}${app.candidate.resumeUrl}`} target="_blank" rel="noreferrer" className="hover:underline">View PDF Resume</a>
                                     </div>
                                   )}
                                   <div className="flex items-center text-xs text-gray-400">

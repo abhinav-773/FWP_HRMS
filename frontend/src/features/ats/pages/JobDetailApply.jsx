@@ -5,7 +5,7 @@ import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
-const PUBLIC_API_URL = 'http://localhost:5000/api/v1/public';
+const PUBLIC_API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/public` : 'http://localhost:5000/api/v1/public';
 
 const JobDetailApply = () => {
   const { id } = useParams();

@@ -302,7 +302,7 @@ const DocumentDashboard = () => {
                       <div className="mt-5 pt-4 border-t border-white/5 flex items-center justify-between">
                         <span className="text-[10px] text-gray-500 font-mono">v1.0.0</span>
                         <a 
-                          href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `http://localhost:5000${doc.fileUrl}`} 
+                          href={doc.fileUrl.startsWith('http') ? doc.fileUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:5000'}${doc.fileUrl}`} 
                           target="_blank" 
                           rel="noreferrer"
                           className="text-xs text-indigo-400 hover:text-indigo-300 font-bold hover:underline flex items-center gap-1"

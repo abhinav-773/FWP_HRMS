@@ -4,7 +4,7 @@ import { Search, MapPin, Briefcase, Calendar, ChevronRight, Sparkles, Globe, Hea
 import axios from 'axios';
 import { motion } from 'framer-motion';
 
-const PUBLIC_API_URL = 'http://localhost:5000/api/v1/public';
+const PUBLIC_API_URL = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/public` : 'http://localhost:5000/api/v1/public';
 
 const CareersPortal = () => {
   const [jobs, setJobs] = useState([]);

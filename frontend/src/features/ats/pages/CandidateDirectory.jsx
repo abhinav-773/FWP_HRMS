@@ -108,7 +108,7 @@ const CandidateDirectory = () => {
                   <span className="text-white font-bold mr-1">{candidate._count?.applications || 0}</span> Applications
                 </div>
                 {candidate.resumeUrl && (
-                  <a href={`http://localhost:5000${candidate.resumeUrl}`} target="_blank" rel="noreferrer" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300">
+                  <a href={candidate.resumeUrl?.startsWith('http') ? candidate.resumeUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:5000'}${candidate.resumeUrl}`} target="_blank" rel="noreferrer" className="flex items-center text-xs font-medium text-indigo-400 hover:text-indigo-300">
                     <FileText className="h-4 w-4 mr-1" /> View Resume
                   </a>
                 )}

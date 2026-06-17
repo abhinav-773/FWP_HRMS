@@ -179,7 +179,7 @@ const CandidateProfileModal = ({ isOpen, onClose, candidate, application, onRefr
                   <span className="font-medium text-white">Original Resume File</span>
                 </div>
                 <a 
-                  href={`http://localhost:5000${candidate.resumeUrl}`} 
+                  href={candidate.resumeUrl?.startsWith('http') ? candidate.resumeUrl : `${import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api/v1', '') : 'http://localhost:5000'}${candidate.resumeUrl}`} 
                   target="_blank" 
                   rel="noreferrer"
                   className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
