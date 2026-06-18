@@ -72,7 +72,11 @@ export class ScreeningQueueService {
         try {
           await prisma.application.update({
             where: { id: item.applicationId },
-            data: { aiInsights: `AI Evaluation failed: ${err.message || 'Unknown processing error'}` }
+            data: { 
+              aiScore: 0,
+              overallAIScore: 0,
+              aiInsights: `AI Evaluation failed: ${err.stack || err.message || 'Unknown processing error'}` 
+            }
           });
         } catch (dbErr) {
           console.error("Failed to update status of failed application in DB:", dbErr);
