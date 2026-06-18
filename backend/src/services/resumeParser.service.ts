@@ -12,35 +12,40 @@ export class ResumeParserService {
      * Extracts raw text from a PDF or DOCX file
      */
     static async extractTextFromFile(filePath: string, mimeType: string): Promise<string> {
-        if (!fs.existsSync(filePath)) {
-            throw new Error(`File not found: ${filePath}`);
-        }
-
         try {
-            if (mimeType === 'application/pdf') {
-                const dataBuffer = fs.readFileSync(filePath);
+            let dataBuffer: Buffer;
+            const isRemote = filePath.startsWith('http://') || filePath.startsWith('https://');
+
+            if (isRemote) {
+                const axios = (await import('axios')).default;
+                const response = await axios.get(filePath, { responseType: 'arraybuffer' });
+                dataBuffer = Buffer.from(response.data);
+            } else {
+                if (!fs.existsSync(filePath)) {
+                    throw new Error(`File not found: ${filePath}`);
+                }
+                dataBuffer = fs.readFileSync(filePath);
+            }
+
+            if (mimeType === 'application/pdf' || filePath.toLowerCase().endsWith('.pdf')) {
                 // pdf-parse v1.1.1 exports the function directly
                 const parseFn = typeof pdfParse === 'function' ? pdfParse : pdfParse.default;
                 const data = await parseFn(dataBuffer);
                 return data.text;
             } else if (
                 mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || 
-                mimeType === 'application/msword'
+                mimeType === 'application/msword' || filePath.toLowerCase().endsWith('.docx')
             ) {
-                const result = await mammoth.extractRawText({ path: filePath });
+                const result = await mammoth.extractRawText({ buffer: dataBuffer });
                 return result.value;
             } else {
                 // Attempt raw string read if txt
-                if (mimeType === 'text/plain') {
-                   return fs.readFileSync(filePath, 'utf-8');
-                }
-                throw new Error(`Unsupported file format for parsing: ${mimeType}`);
+                return dataBuffer.toString('utf-8');
             }
         } catch (error: any) {
             console.error("Error extracting text from file:", error?.message || error);
             console.error("Full error:", error);
             console.error("File path:", filePath, "MIME:", mimeType);
-            console.error("pdf-parse type:", typeof pdfParse);
             throw new Error(`Failed to extract text from file: ${error?.message}`);
         }
     }

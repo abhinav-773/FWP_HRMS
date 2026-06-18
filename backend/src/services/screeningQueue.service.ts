@@ -109,24 +109,28 @@ export class ScreeningQueueService {
     }
 
     let resumePath = candidate.resumeUrl;
-    if (path.isAbsolute(candidate.resumeUrl)) {
-      if (process.platform === 'win32' && !candidate.resumeUrl.match(/^[A-Za-z]:/)) {
+    const isRemote = resumePath.startsWith('http://') || resumePath.startsWith('https://');
+
+    if (!isRemote) {
+      if (path.isAbsolute(candidate.resumeUrl)) {
+        if (process.platform === 'win32' && !candidate.resumeUrl.match(/^[A-Za-z]:/)) {
+          const cleanUrl = candidate.resumeUrl.replace(/^\/+/, '').replace(/^\\+/, '');
+          resumePath = path.resolve(__dirname, '../../', cleanUrl);
+        } else {
+          resumePath = candidate.resumeUrl;
+        }
+      } else {
         const cleanUrl = candidate.resumeUrl.replace(/^\/+/, '').replace(/^\\+/, '');
         resumePath = path.resolve(__dirname, '../../', cleanUrl);
-      } else {
-        resumePath = candidate.resumeUrl;
       }
-    } else {
-      const cleanUrl = candidate.resumeUrl.replace(/^\/+/, '').replace(/^\\+/, '');
-      resumePath = path.resolve(__dirname, '../../', cleanUrl);
-    }
 
-    if (!fs.existsSync(resumePath)) {
-      throw new Error(`Resume file not found at path: ${resumePath}`);
+      if (!fs.existsSync(resumePath)) {
+        throw new Error(`Resume file not found at path: ${resumePath}`);
+      }
     }
 
     // Determine mimeType
-    const ext = path.extname(resumePath).toLowerCase();
+    const ext = path.extname(resumePath.split('?')[0]).toLowerCase();
     const mimeType = ext === '.pdf' ? 'application/pdf' : (ext === '.docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'text/plain');
 
     // 2. Resume Parsing (skills, experience, education, certifications, projects)
