@@ -116,18 +116,10 @@ export class ScreeningQueueService {
     const isRemote = resumePath.startsWith('http://') || resumePath.startsWith('https://');
 
     if (!isRemote) {
-      if (path.isAbsolute(candidate.resumeUrl)) {
-        if (process.platform === 'win32' && !candidate.resumeUrl.match(/^[A-Za-z]:/)) {
-          const cleanUrl = candidate.resumeUrl.replace(/^\/+/, '').replace(/^\\+/, '');
-          resumePath = path.resolve(__dirname, '../../', cleanUrl);
-        } else {
-          resumePath = candidate.resumeUrl;
-        }
-      } else {
-        const cleanUrl = candidate.resumeUrl.replace(/^\/+/, '').replace(/^\\+/, '');
-        resumePath = path.resolve(__dirname, '../../', cleanUrl);
-      }
-
+      // The DB stores local paths as '/uploads/resumes/file.pdf'.
+      // We must strip the leading slash and resolve relative to process.cwd() or __dirname
+      const cleanUrl = candidate.resumeUrl.replace(/^[\/\\]+/, '');
+      resumePath = path.resolve(__dirname, '../../', cleanUrl);
       if (!fs.existsSync(resumePath)) {
         throw new Error(`Resume file not found at path: ${resumePath}`);
       }
