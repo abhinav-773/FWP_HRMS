@@ -130,7 +130,8 @@ export class ScreeningQueueService {
     }
 
     // Determine mimeType
-    const ext = path.extname(resumePath.split('?')[0]).toLowerCase();
+    const cleanResumePath = resumePath.split('?')[0] || resumePath;
+    const ext = path.extname(cleanResumePath).toLowerCase();
     const mimeType = ext === '.pdf' ? 'application/pdf' : (ext === '.docx' ? 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' : 'text/plain');
 
     // 2. Resume Parsing (skills, experience, education, certifications, projects)
