@@ -27,7 +27,9 @@ export class ResumeParserService {
                 dataBuffer = fs.readFileSync(filePath);
             }
 
-            if (mimeType === 'application/pdf' || filePath.toLowerCase().endsWith('.pdf')) {
+            const isPdf = mimeType === 'application/pdf' || filePath.toLowerCase().endsWith('.pdf') || (dataBuffer && dataBuffer.length > 4 && dataBuffer.slice(0, 5).toString('utf-8') === '%PDF-');
+
+            if (isPdf) {
                 // pdf-parse v1.1.1 exports the function directly
                 const parseFn = typeof pdfParse === 'function' ? pdfParse : pdfParse.default;
                 const data = await parseFn(dataBuffer);
